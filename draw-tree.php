@@ -17,8 +17,8 @@ class Person {
    var $isTarget = FALSE;
    var $isBase = FALSE;
 
- function __construct(&$rawArray, &$parent = null) {
-     $this->rawData = &$rawArray;
+ function __construct(&$rawData, &$parent = null) {
+     $this->rawData = &$rawData;
      $this->rawData["object"] = $this;
      if (!$parent == null){
          $this->parents[] = &$parent;
@@ -41,8 +41,8 @@ class Person {
    }
  }
 
- function addNewKid(&$rawArray) {
-     $this->kids[] = new Person($rawArray, $this);
+ function addNewKid(&$rawData) {
+     $this->kids[] = new Person($rawData, $this);
  }
 
  function addKid(&$personObject) {
@@ -67,14 +67,20 @@ class Cell {
        $this->column = $index;
    }
 
+   function reset() {
+       $this->person = null;
+       $this->text = "&nbsp;";
+       $this->colspan = 1;
+   }
+
    function end() {
-       return $column + $colspan;
+       return $this->column + $this->colspan;
    }
 }
 
 
 // Recursive function to find kids and kids’ kids and kids’ kids’ kids...
-function findKids(&$parent, &$people, &$path, $baseObject) {
+function findKids(&$parent, &$people, &$path) {
    $parent->paths[] = $path;
    if(!$parent->kidsSearched){
        for ($i=0; $i<count($people); $i++){  // Loop through everyone
@@ -90,11 +96,11 @@ function findKids(&$parent, &$people, &$path, $baseObject) {
    }
    for($i=0; $i<count($parent->kids); $i++) { // Loop through all of this person’s kids
        $parent->kids[$i]->generation = max($parent->kids[$i]->generation, $parent->generation + 1);
-       if($parent->kids[$i] == $baseObject) { // If we’re at the base person we’ve completed another path
+       if($parent->kids[$i]->isBase) { // If we’re at the base person we’ve completed another path
            $parent->kids[$i]->paths[] = $path;
            $path++;
        } else {
-           findKids($parent->kids[$i], $people, $path, $baseObject);
+           findKids($parent->kids[$i], $people, $path);
            // Add all paths that were added to child to parent as well.
            for($j=$parent->lastPath(); $j<$parent->kids[$i]->lastPath(); $j++){
                $parent->paths[] = $j+1;
@@ -121,36 +127,37 @@ function assignBlocks(&$parent, &$blocks) {
  }
 }
 
-function putBlockHere(&$grid, &$blocks, &$thisBlock, $generation, $left, $width, $topIsTarget) {
-   $thisWidth = min(count($thisBlock[0]->paths), $width);
-   for ($i=$generation-1, $j=0; $j<count($thisBlock); $i++, $j++){
-       if (!$thisBlock[$j]->isTarget) {  // don't print vertical line above top ancestor
-           $grid[$i*4][$left]->text = "|";
-       }
-       $grid[$i*4][$left]->colspan = $thisWidth;
-       $grid[$i*4+1][$left]->person = &$thisBlock[$j];
-       $grid[$i*4+1][$left]->colspan = $thisWidth;
-       if (!$thisBlock[$j]->isBase) {  // don't print vertical lines below base
-           $grid[$i*4+2][$left]->text = "|";
-           $grid[$i*4+3][$left]->text = "|";
-       }
-       $grid[$i*4+2][$left]->colspan = $thisWidth;
-       $grid[$i*4+3][$left]->colspan = $thisWidth;
-   }
-   $bottomOfBlock = &$thisBlock[count($thisBlock)-1];
+function putBlockHere(&$grid, &$blocks, &$thisBlock, $generation, $left, $width) {
+    // Child width can’t be greater than parent’s (passed in) width *yet*
+    $thisWidth = min(count($thisBlock[0]->paths), $width);
+    for ($i=($generation-1)*4, $j=0; $j<count($thisBlock); $i+=4, $j++){
+        if (!$thisBlock[$j]->isTarget) {  // If this is not the top ancestor
+            // Print vertical line above name to connect with parent
+            $grid[$i][$left]->text = "|";
+        }
+        $grid[$i][$left]->colspan = $thisWidth;
+        $grid[$i+1][$left]->person = &$thisBlock[$j];
+        $grid[$i+1][$left]->colspan = $thisWidth;
+        if (!$thisBlock[$j]->isBase) {  // don't print vertical lines below base
+            $grid[$i+2][$left]->text = "|";
+            $grid[$i+3][$left]->text = "|";
+        }
+        $grid[$i+2][$left]->colspan = $thisWidth;
+        $grid[$i+3][$left]->colspan = $thisWidth;
+    }
+    $bottomOfBlock = &$thisBlock[count($thisBlock)-1];
 
-   $nextChildColStart = $left;
-   for ($i=0; $i<count($bottomOfBlock->kids); $i++) {
-       $lastWidth = putBlockHere($grid, $blocks, $blocks[$bottomOfBlock->kids[$i]->block], $bottomOfBlock->kids[$i]->generation, $nextChildColStart, $thisWidth, FALSE);
-       $nextChildColStart += $lastWidth;
-   }
-   return ($thisWidth);
+    $nextChildColStart = $left;
+    for ($i=0; $i<count($bottomOfBlock->kids); $i++) {
+        $lastWidth = putBlockHere($grid, $blocks, $blocks[$bottomOfBlock->kids[$i]->block], $bottomOfBlock->kids[$i]->generation, $nextChildColStart, $thisWidth);
+        $nextChildColStart += $lastWidth;
+    }
+    return ($thisWidth);
 }
 
 // Function to lay out tree
-function drawTree(&$blocks, &$targetObject, &$baseObject) {
-   $width = count($baseObject->paths);
-   $depth = $baseObject->generation;
+function drawTree(&$blocks, &$targetObject, $depth) {
+   $width = count($targetObject->paths);
    // echo "<br>" . $width . " wide by " . $depth . " deep<br>";
    // echo "<br>";
 
@@ -161,22 +168,21 @@ function drawTree(&$blocks, &$targetObject, &$baseObject) {
        }
    }
 
-   $x = putBlockHere($grid, $blocks, $blocks[$targetObject->block], $targetObject->generation, 0, count($targetObject->paths), TRUE);
+   $dummy = putBlockHere($grid, $blocks, $blocks[$targetObject->block], $targetObject->generation, 0, count($targetObject->paths));
 
    //printTheChart($grid);
-
-   //$grid[0][1]->text = "fill";
-
-   // Consolidate adjacent duplicates
+    
+   // Every person occupies a 1x4 block of cells
+   // Consolidate adjacent duplicate persons
    for ($i=1; $i<$depth*4; $i+=4) { // start at 1st row with name (very 1st is blank), jump by 4 rows (names every 4 rows)
        for ($j=0; $j+$grid[$i][$j]->colspan < $width; ) {
            if (($grid[$i][$j]->person != null) && ($grid[$i][$j]->person == $grid[$i][$j+$grid[$i][$j]->colspan]->person)) {
                for ($k=-1; $k<3; $k++) { 
-                   // if ($k==0) printRow($grid[$i+$k]);
+                   // if ($k==0) printRow($grid[$i+$k], $i+$k);
                    // combine vertical blocks of 4 cells into 1 vertical block of 4 cells
-                   $grid[$i+$k][$j+$grid[$i+$k][$j]->colspan] = new Cell($j+$grid[$i+$k][$j]->colspan);  // wipe out what was there (cell won't be printed anyway)
+                   $grid[$i+$k][$j+$grid[$i+$k][$j]->colspan]->reset();  // wipe out what was there (cell won't be printed anyway)
                    $grid[$i+$k][$j]->colspan += $grid[$i+$k][$j+$grid[$i+$k][$j]->colspan]->colspan;  // increase colspan by colspan of covered cell
-                   // if ($k==0) printRow($grid[$i+$k]);
+                   // if ($k==0) printRow($grid[$i+$k], $i+$k);
                }
                if($grid[$i][$j]->colspan > $grid[$i-4][$j]->colspan) { // if child span is bigger than parent span
                    // Draw horizontal line linking parents
@@ -235,6 +241,7 @@ function drawTree(&$blocks, &$targetObject, &$baseObject) {
    printTheChart($grid);
 }
 
+// Useful debugging function -- prints one row from the grid
 function printRow(&$row, $rownum) {
    echo $rownum . "<table style=\"width:100%\" border=\"1\">\n";
    echo "<tr>\n";
@@ -251,8 +258,8 @@ function printRow(&$row, $rownum) {
    echo "</table>\n<br>";
 }
 
+// Print the chart
 function printTheChart(&$grid) {
-   // Print the chart
    echo "\n\n<table style=\"width:100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n";
    for ($i=0; $i<count($grid); $i++) {
        echo "<tr><!-- ". $i . " -->\n";
@@ -281,9 +288,6 @@ $base = "Holmes-8874";
 // Array to hold only one copy of each ancestor
 $ancestors = array();
 
-// Array to hold lengths of all paths
-$currentPath = 0;
-
 // Array to hold blocks of people whose placement relative to each other is certain
 $blocks = array();
 
@@ -294,12 +298,13 @@ $json = file_get_contents('https://apps.wikitree.com/api.php?action=getAncestors
 $arr = json_decode($json, true);
 
 // Filter out duplicates and find target ancestor and base
-for ($i=0, $j=0; $i<count($arr[0]["ancestors"]); $i++){
- for($k=0, $found=FALSE; $k<count($ancestors); $k++){
+for ($i=0, $j=0; $i<count($arr[0]["ancestors"]); $i++){  // Loop through decoded json array
+ for($k=0, $found=FALSE; $k<count($ancestors) && $found==FALSE; $k++){ // Loop through already found ancestors
+   // If they match we’ve already got this one so set $found so we exit the loop
    if($arr[0]["ancestors"][$i]["Name"] == $ancestors[$k]["Name"]) $found = TRUE;
  }
  if(!$found) {
-   $ancestors[$j] = $arr[0]["ancestors"][$i];
+   $ancestors[$j] = &$arr[0]["ancestors"][$i];
    $ancestors[$j]["object"] = null;
    if($targetAncestor == $ancestors[$j]["Name"]) {
        $targetObject = new Person($ancestors[$j]);
@@ -314,19 +319,7 @@ for ($i=0, $j=0; $i<count($arr[0]["ancestors"]); $i++){
  }
 }
 
-findKids($targetObject, $ancestors, $currentPath, $baseObject);
-
-echo "<br>";
-
-// for($i=0; $i<count($ancestors); $i++){
-//   if(count($ancestors[$i]["paths"]) > 0) {
-//     echo $ancestors[$i]["BirthName"] . " " . $ancestors[$i]["Name"] . ", generation " . $ancestors[$i]["generation"] . ", " . count($ancestors[$i]["paths"]) . " paths: ";
-//     for($j=0; $j<count($ancestors[$i]["paths"]); $j++) {
-//       echo $ancestors[$i]["paths"][$j] . " ";
-//     }
-//     echo "<br>";
-//   }
-// }
+findKids($targetObject, $ancestors, 0);
 
 assignBlocks($targetObject, $blocks);
 
@@ -341,9 +334,9 @@ assignBlocks($targetObject, $blocks);
 //   }
 // }
 
-echo "<br>";
+//echo "<br>";
 
-drawTree($blocks, $targetObject, $baseObject);
+drawTree($blocks, $targetObject, $baseObject->generation);
 
 //var_dump($targetObject->rawData);
 
