@@ -7,6 +7,7 @@
 <body>
 <?php
 
+// an individual in the tree
 class Person {
     // raw person data as downloaded from WikiTree
    var $rawData = array();
@@ -74,29 +75,7 @@ class Person {
    }
 }
 
-
-class Cell {
-  var $colspan = 1;
-  var $align = "center";
-  var $person;
-  var $text = "&nbsp;";
-  private $column;
-   function __construct($index) {
-      $this->column = $index;
-  }
-
-  function reset() {
-      $this->person = null;
-      $this->text = "&nbsp;";
-      $this->colspan = 1;
-  }
-
-  function endCol() {
-      return $this->column + $this->colspan;
-  }
-}
-
-
+// a string of people that goes from the target ancestor to the base person
 class Path {
    // array of persons in this path
    var $persons = array();
@@ -180,7 +159,7 @@ class Path {
    }
 }
 
-
+// a collection of paths which must be grouped together because of sibling relationships
 class Family {
     // the paths that make up the family
    var $paths = array();
@@ -244,6 +223,36 @@ class Family {
    }
 }
 
+// A cell in the html table 
+class Cell {
+    // how many columns wide
+    var $colspan = 1;
+    // how the contents of the cell are aligned
+    var $align = "center";
+    // link to the person to show in the cell (if this cell contains a person)
+    var $person;
+    // text that will show in the cell if there isn't a person
+    var $text = "&nbsp;";
+    // column that the cell is in (used by endCol() )
+    private $column;
+ 
+    function __construct($index) {
+        $this->column = $index;
+    }
+
+    // reset the contenets of the cell
+    function reset() {
+        $this->person = null;
+        $this->text = "&nbsp;";
+        $this->colspan = 1;
+    }
+
+    // returns the start of the next column
+    function endCol() {
+        return $this->column + $this->colspan;
+    }
+}
+
 
 // Recursive function to find kids and kids’ kids and kids’ kids’ kids...
 // It also puts together all of the paths between the base person and target person and groups the paths into families.
@@ -303,6 +312,7 @@ function findNeighbors (&$families) {
    }
 }
 
+// attempt to shift two paths next to each other  
 function consolidate(&$path1, &$path2) {
    // path1 will always be left of path2 upon entering here
    // first figure out the first family that the two paths do not share.
