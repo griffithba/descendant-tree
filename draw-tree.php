@@ -332,16 +332,18 @@ function consolidate(&$path1, &$path2) {
             return(-1);
         }
         // also make sure it's not in a family below the 1st unique which is already locked down to a path outside the 1st unique family.
-        for ($j=0; $j<2 && $path1->families[$i]->leftPath()->mustBeNeighbor[$j] != null; $j++) {
-            if (!in_array($path1->families[$i]->leftPath()->mustBeNeighbor[$j], $path1->families[$index1stUnique]->paths)) {
-                echo "&nbsp;&nbsp;Path " . $path1->index . " is part of family " . $path1->families[$i]->index . " that is locked to the edge of family " . $path1->families[$index1stUnique]->index . " already.<br>";
-                return(-1);
+        if ($i > $index1stUnique) {  // this will check every family below 1st unique, but really only the 1st below needs to be checked
+            for ($j=0; $j<2 && $path1->families[$i]->leftPath()->mustBeNeighbor[$j] != null; $j++) {
+                if (!in_array($path1->families[$i]->leftPath()->mustBeNeighbor[$j], $path1->families[$index1stUnique]->paths)) {
+                    echo "&nbsp;&nbsp;Path " . $path1->index . " is part of family " . $path1->families[$i]->index . " that is locked to the edge of family " . $path1->families[$index1stUnique]->index . " already.<br>";
+                    return(-1);
+                }
             }
-        }
-        for ($j=0; $j<2 && $path1->families[$i]->rightPath()->mustBeNeighbor[$j] != null; $j++) {
-            if (!in_array($path1->families[$i]->rightPath()->mustBeNeighbor[$j], $path1->families[$index1stUnique]->paths)) {
-                echo "&nbsp;&nbsp;Path " . $path1->index . " is part of a family that is locked to the edge of a family already.<br>";
-                return(-1);
+            for ($j=0; $j<2 && $path1->families[$i]->rightPath()->mustBeNeighbor[$j] != null; $j++) {
+                if (!in_array($path1->families[$i]->rightPath()->mustBeNeighbor[$j], $path1->families[$index1stUnique]->paths)) {
+                    echo "&nbsp;&nbsp;Path " . $path1->index . " is part of a family that is locked to the edge of a family already.<br>";
+                    return(-1);
+                }
             }
         }
     }
@@ -351,16 +353,18 @@ function consolidate(&$path1, &$path2) {
             return(-1);
         }
         // also make sure it's not in a family below the 1st unique which is already locked down to a path outside the 1st unique family.
-        for ($j=0; $j<2 && $path2->families[$i]->leftPath()->mustBeNeighbor[$j] != null; $j++) {
-            if (!in_array($path2->families[$i]->leftPath()->mustBeNeighbor[$j], $path2->families[$index1stUnique]->paths)) {
-                echo "&nbsp;&nbsp;Path " . $path2->index . " is part of a family that is locked to the edge of a family already.<br>";
-                return(-1);
+        if ($i > $index1stUnique) {  // this will check every family below 1st unique, but really only the 1st below needs to be checked
+            for ($j=0; $j<2 && $path2->families[$i]->leftPath()->mustBeNeighbor[$j] != null; $j++) {
+                if (!in_array($path2->families[$i]->leftPath()->mustBeNeighbor[$j], $path2->families[$index1stUnique]->paths)) {
+                    echo "&nbsp;&nbsp;Path " . $path2->index . " is part of a family that is locked to the edge of a family already.<br>";
+                    return(-1);
+                }
             }
-        }
-        for ($j=0; $j<2 && $path2->families[$i]->rightPath()->mustBeNeighbor[$j] != null; $j++) {
-            if (!in_array($path2->families[$i]->rightPath()->mustBeNeighbor[$j], $path2->families[$index1stUnique]->paths)) {
-                echo "&nbsp;&nbsp;Path " . $path2->index . " is part of a family that is locked to the edge of a family already.<br>";
-                return(-1);
+            for ($j=0; $j<2 && $path2->families[$i]->rightPath()->mustBeNeighbor[$j] != null; $j++) {
+                if (!in_array($path2->families[$i]->rightPath()->mustBeNeighbor[$j], $path2->families[$index1stUnique]->paths)) {
+                    echo "&nbsp;&nbsp;Path " . $path2->index . " is part of a family that is locked to the edge of a family already.<br>";
+                    return(-1);
+                }
             }
         }
     }
@@ -373,16 +377,15 @@ function consolidate(&$path1, &$path2) {
 
     // if they are in the same family, make sure they aren't each locked down to opposite sides of it
     if ($path1->families[$index1stUnique]->isPath() && $path2->families[$index1stUnique]->isPath()) {
-        for ($j=0; $j<2 && $path1->mustBeNeighbor[$j] != null; $j++) {
-            if (!in_array($path1->mustBeNeighbors[$j], $path1->families[$index1stUnique-1]->paths)) {
-                echo "Paths are each locked down to opposite sides of a family.<br>";
-                return(-1);
-            }
-        }
-        for ($j=0; $j<2 && $path2->mustBeNeighbor[$j] != null; $j++) {
-            if (!in_array($path2->mustBeNeighbors[$j], $path2->families[$index1stUnique-1]->paths)) {
-                echo "Paths are each locked down to opposite sides of a family.<br>";
-                return(-1);
+        for ($i=0; $j<2 && $path1->mustBeNeighbor[$i] != null; $j++) {
+            if (!in_array($path1->mustBeNeighbors[$i], $path1->families[$index1stUnique-1]->paths)) {
+                // path1 is locked to one side of the family, now see if path2 is locked to the other
+                for ($j=0; $j<2 && $path2->mustBeNeighbor[$j] != null; $j++) {
+                    if (!in_array($path2->mustBeNeighbors[$j], $path2->families[$index1stUnique-1]->paths)) {
+                        echo "Paths are each locked down to opposite sides of a family.<br>";
+                        return(-1);
+                    }
+                }
             }
         }
     }
@@ -392,12 +395,12 @@ function consolidate(&$path1, &$path2) {
     // move the two families together
     //
     for ($i=$index1stUnique, $j=0;
-         $i < count($path1->families) || $i < count($path2->families);
+         $i < max($path1->families, $path2->families);
          $i++, $j++) {
         $path1FamilyIndex = min($i, count($path1->families) - 1);
         $path2FamilyIndex = min($i, count($path2->families) - 1);
 
-        echo "Family indeces: " . $path1FamilyIndex . " " . $path2FamilyIndex . "<br>";
+        echo "Family indices: " . $path1FamilyIndex . " " . $path2FamilyIndex . "<br>";
 
         $group1LeftExtent = &$path1->families[$path1FamilyIndex]->leftPath();
         $group1RightExtent = &$path1->families[$path1FamilyIndex]->rightPath();
@@ -473,7 +476,7 @@ function consolidate(&$path1, &$path2) {
 
         }
 
-        // if the left is tied to its neighbor by lock or by family tie
+        // if the left is tied to its left neighbor by lock or by family tie
         while ($group1LeftExtent->leftLocked() ||
                ((count($group1LeftExtent->left()->families) > $path1FamilyIndex) &&
                 ($group1LeftExtent->families[$path1FamilyIndex] == $group1LeftExtent->left()->families[$path1FamilyIndex]))) {
@@ -481,7 +484,9 @@ function consolidate(&$path1, &$path2) {
             echo "Bumped left family extent over 1.<br>";
         }
 
-        // if the right is tied to its neighbor by lock or by family tie
+        $group1LeftNeighbor = &$group1LeftExtent->left();
+
+        // if the right is tied to its right neighbor by lock or by family tie
         while ($group2RightExtent->rightLocked() ||
                ((count($group2RightExtent->right()->families) > $path2FamilyIndex) &&
                 ($group2RightExtent->families[$path2FamilyIndex] == $group2RightExtent->right()->families[$path2FamilyIndex]))) {
@@ -489,12 +494,13 @@ function consolidate(&$path1, &$path2) {
             echo "Bumped right extent over 1.<br>";
         }
 
-        $group2LeftNeighbor = &$group2LeftExtent->left();
         $group2RightNeighbor = &$group2RightExtent->right();
 
         // if they're not already next to each other
         if ($group1RightNeighbor != $group2LeftExtent) {
+            // if the right path isn't already next to the left family
             if ($path1->families[$index1stUnique]->rightPath()->right() != $path2) {
+                // move it left
                 $group1RightExtent->right = &$group2LeftExtent;
                 $group2LeftExtent->left = &$group1RightExtent;
                 $group1RightNeighbor->left = &$group2RightExtent;
@@ -502,6 +508,7 @@ function consolidate(&$path1, &$path2) {
                 $group2LeftNeighbor->right = &$group2RightNeighbor;
                 $group2RightNeighbor->left = &$group2LeftNeighbor;
             } else if ($path2->families[$index1stUnique]->leftPath()->left() != $path1) {
+                // else if the left path isn't already next to the right family move it right
                 $group1RightExtent->right = &$group2LeftExtent;
                 $group2LeftExtent->left = &$group1RightExtent;
                 $group1RightNeighbor->left = &$group1LeftNeighbor;
@@ -510,7 +517,7 @@ function consolidate(&$path1, &$path2) {
                 $group1LeftExtent->left = &$group2LeftNeighbor;
             }
         }
-        if ($j == 1) return (0);
+//        if ($j == 1) return (0);  // debug
     }
 
     //
@@ -522,6 +529,7 @@ function consolidate(&$path1, &$path2) {
         } else {
             $path1->mustBeNeighbor[1] = &$path2;
         }
+        
         if ($path2->mustBeNeighbor[0] == null) {
             $path2->mustBeNeighbor[0] = &$path1;
         } else {
