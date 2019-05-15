@@ -10,19 +10,19 @@
 // an individual in the tree
 class Person {
     // raw person data as downloaded from WikiTree
-   var $rawData = array();
+    var $rawData = array();
     // parents of this person
-   var $parents = array();
+    var $parents = array();
     // kids of this person
-   var $kids = array();
+    var $kids = array();
     // generation this person is part of (if multiple, this is the latest)
-   var $generation = 0;
+    var $generation = 0;
     // whether this person's kids have already been searched
-   var $kidsSearched = FALSE;
+    var $kidsSearched = FALSE;
     // whether this is the target ancestor (top of the chart)
-   var $isTarget = FALSE;
+    var $isTarget = FALSE;
     // whether this is the base person (bottom of the chart)
-   var $isBase = FALSE;
+    var $isBase = FALSE;
 
    function __construct(&$rawData = null, &$parent = null) {
        $this->rawData = &$rawData;
@@ -30,49 +30,49 @@ class Person {
        if ($parent != null){
            $this->parents[] = &$parent;
        }
-   }
+    }
 
-   function getId() {
-       return ($this->rawData["Id"]);
-   }
+    function getId() {
+        return ($this->rawData["Id"]);
+    }
 
-   function getWTID() {
-       return ($this->rawData["Name"]);
-   }
+    function getWTID() {
+        return ($this->rawData["Name"]);
+    }
 
-   function getName() {
-       if (array_key_exists("BirthName", $this->rawData)) {
-           return ($this->rawData["BirthName"]);
-       } else {
-           return ($this->rawData["ShortName"]);
-      }
-   }
+    function getName() {
+        if (array_key_exists("BirthName", $this->rawData)) {
+            return ($this->rawData["BirthName"]);
+        } else {
+            return ($this->rawData["ShortName"]);
+        }
+    }
 
-   function getDates() {
-       $birth = substr($this->rawData["BirthDate"], 0, 4);
-       if ($birth == "0000")
-           $birth = "&nbsp;";
-       $death = substr($this->rawData["DeathDate"], 0, 4);
-       if ($death == "0000")
-           $death = "&nbsp;";
-       return ($birth . "-" . $death);
-   }
+    function getDates() {
+        $birth = substr($this->rawData["BirthDate"], 0, 4);
+        if ($birth == "0000")
+            $birth = "&nbsp;";
+        $death = substr($this->rawData["DeathDate"], 0, 4);
+        if ($death == "0000")
+            $death = "&nbsp;";
+        return ($birth . "-" . $death);
+    }
 
-   function getThumb() {
-       if (array_key_exists("PhotoData", $this->rawData))
-           return ("<img src=\"http://www.wikitree.com/" . $this->rawData["PhotoData"]["url"] . "\" style=\"vertical-align:top\">\n");
-   }
+    function getThumb() {
+        if (array_key_exists("PhotoData", $this->rawData))
+            return ("<img src=\"http://www.wikitree.com/" . $this->rawData["PhotoData"]["url"] . "\" style=\"vertical-align:top\">\n");
+    }
 
-   function addKid(&$rawData) {
-       if ($rawData["object"] == null) {  // If there isn't already an object
-           $this->kids[] = new Person($rawData, $this);
-           $kidObject = &$this->kids[count($this->kids) - 1];
-       } else {  // object already exists
-           $kidObject = &$rawData["object"];
-           $this->kids[] = &$kidObject;
-           $kidObject->parents[] = &$this;
-       }
-   }
+    function addKid(&$rawData) {
+        if ($rawData["object"] == null) {  // If there isn't already an object
+            $this->kids[] = new Person($rawData, $this);
+            $kidObject = &$this->kids[count($this->kids) - 1];
+        } else {  // object already exists
+            $kidObject = &$rawData["object"];
+            $this->kids[] = &$kidObject;
+            $kidObject->parents[] = &$this;
+        }
+    }
 }
 
 // a string of people that goes from the target ancestor to the base person
@@ -162,65 +162,65 @@ class Path {
 // a collection of paths which must be grouped together because of sibling relationships
 class Family {
     // the paths that make up the family
-   var $paths = array();
+    var $paths = array();
     // index of this family in the array of families
-   var $index;
+    var $index;
 
-   function __construct(&$path, $index = -1) {
-       $this->paths[0] = &$path;
-       $this->index = $index;
-       $path->families[] = &$this;
-   }
+    function __construct(&$path, $index = -1) {
+        $this->paths[0] = &$path;
+        $this->index = $index;
+        $path->families[] = &$this;
+    }
 
     // returns the left-most path in the family
-   function &leftPath() {
-       $leftSide = &$this->paths[0];
-       while (in_array($leftSide->left(), $this->paths)) {
-           $leftSide = &$leftSide->left;
-       }
-       return ($leftSide);
-   }
+    function &leftPath() {
+        $leftSide = &$this->paths[0];
+        while (in_array($leftSide->left(), $this->paths)) {
+            $leftSide = &$leftSide->left;
+        }
+        return ($leftSide);
+    }
 
     // returns the right-most path in the family
-   function &rightPath() {
-       $rightSide = &$this->paths[count($this->paths) - 1];
-       while (in_array($rightSide->right(), $this->paths)) {
-           $rightSide = &$rightSide->right;
-       }
-       return ($rightSide);
-   }
+    function &rightPath() {
+        $rightSide = &$this->paths[count($this->paths) - 1];
+        while (in_array($rightSide->right(), $this->paths)) {
+            $rightSide = &$rightSide->right;
+        }
+        return ($rightSide);
+    }
 
     // returns the path to the right of the family
-   function &right() {
-       return ($this->rightPath()->right());
-   }
+    function &right() {
+        return ($this->rightPath()->right());
+    }
 
     // returns the path to the left of the family
-   function &left() {
-       return ($this->leftPath()->left());
-   }
+    function &left() {
+        return ($this->leftPath()->left());
+    }
 
     // returns true if the left side of the family is locked to its left neighbor
-   function leftLocked() {
-       return ($this->leftPath()->leftLocked());
-   }
+    function leftLocked() {
+        return ($this->leftPath()->leftLocked());
+    }
 
     // returns true if the right side of the family is locked to its right neighbor
-   function rightLocked() {
-       return ($this->rightPath()->rightLocked());
-   }
+    function rightLocked() {
+        return ($this->rightPath()->rightLocked());
+    }
 
     // returns true if both sides of the family are locked
-   function neighborsLocked() {
-       return ($this->rightLocked() && $this->leftLocked());
-   }
+    function neighborsLocked() {
+        return ($this->rightLocked() && $this->leftLocked());
+    }
 
-   function isPath(){
-       return FALSE;
-   }
-   function isFamily(){
-       return TRUE;
-   }
+    function isPath(){
+        return FALSE;
+    }
+    function isFamily(){
+        return TRUE;
+    }
 }
 
 // A cell in the html table 
@@ -326,7 +326,7 @@ function consolidate(&$path1, &$path2) {
    echo "&nbsp;&nbsp;Families " . $path1->families[$index1stUnique]->index . " and " . $path2->families[$index1stUnique]->index . " are at index " . $index1stUnique . "<br>";
 
    // make sure neither path is in a non-shared family that has their neighbors on both sides locked down
-   for ($i=$index1stUnique; $path1->families[$i] != $path1; $i++) {
+   for ($i=$index1stUnique; $i<count($path1->families)-1; $i++) {
        if ($path1->families[$i]->neighborsLocked()) {
            echo "&nbsp;&nbsp;They can't because path " . $path1->index . " is in family " . $path1->families[$i]->index . " that's already got both sides locked down.<br>";
            return(-1);
@@ -334,18 +334,18 @@ function consolidate(&$path1, &$path2) {
        // also make sure it's not in a family below the 1st unique which is already locked down to a path outside the 1st unique family.
        for ($j=0; $j<2 && $path1->families[$i]->leftPath()->mustBeNeighbor[$j] != null; $j++) {
            if (!in_array($path1->families[$i]->leftPath()->mustBeNeighbor[$j], $path1->families[$index1stUnique]->paths)) {
-               echo "&nbsp;&nbsp;Path " . $path1->index . " is part of family " . $i . " that is locked to the edge of a family already.<br>";
-               //return(-1);
+               echo "&nbsp;&nbsp;Path " . $path1->index . " is part of family " . $path1->families[$i]->index . " that is locked to the edge of family " . $path1->families[$index1stUnique]->index . " already.<br>";
+               return(-1);
            }
        }
        for ($j=0; $j<2 && $path1->families[$i]->rightPath()->mustBeNeighbor[$j] != null; $j++) {
            if (!in_array($path1->families[$i]->rightPath()->mustBeNeighbor[$j], $path1->families[$index1stUnique]->paths)) {
                echo "&nbsp;&nbsp;Path " . $path1->index . " is part of a family that is locked to the edge of a family already.<br>";
-               //return(-1);
+               return(-1);
            }
        }
    }
-   for ($i=$index1stUnique; $path2->families[$i] != $path2; $i++) {
+   for ($i=$index1stUnique; $i<count($path2->families)-1; $i++) {
        if ($path2->families[$i]->neighborsLocked()) {
            echo "&nbsp;&nbsp;They can't because path " . $path2->index . " is in family " . $path2->families[$i]->index . " that's already got both sides locked down.<br>";
            return(-1);
@@ -354,13 +354,13 @@ function consolidate(&$path1, &$path2) {
        for ($j=0; $j<2 && $path2->families[$i]->leftPath()->mustBeNeighbor[$j] != null; $j++) {
            if (!in_array($path2->families[$i]->leftPath()->mustBeNeighbor[$j], $path2->families[$index1stUnique]->paths)) {
                echo "&nbsp;&nbsp;Path " . $path2->index . " is part of a family that is locked to the edge of a family already.<br>";
-               //return(-1);
+               return(-1);
            }
        }
        for ($j=0; $j<2 && $path2->families[$i]->rightPath()->mustBeNeighbor[$j] != null; $j++) {
            if (!in_array($path2->families[$i]->rightPath()->mustBeNeighbor[$j], $path2->families[$index1stUnique]->paths)) {
                echo "&nbsp;&nbsp;Path " . $path2->index . " is part of a family that is locked to the edge of a family already.<br>";
-               //return(-1);
+               return(-1);
            }
        }
    }
@@ -391,9 +391,9 @@ function consolidate(&$path1, &$path2) {
    //
    // move the two families together
    //
-   for ($i=$index1stUnique;
+   for ($i=$index1stUnique, $j=0;
         $i < count($path1->families) || $i < count($path2->families);
-        $i++) {
+        $i++, $j++) {
        $path1FamilyIndex = min($i, count($path1->families) - 1);
        $path2FamilyIndex = min($i, count($path2->families) - 1);
 
@@ -407,14 +407,12 @@ function consolidate(&$path1, &$path2) {
 
        // if a family is locked down on the side facing the other family, then reverse the family. 
        if ($path1->families[$path1FamilyIndex]->rightLocked()) {
-/*
            while ($group1RightExtent->rightLocked() ||
                   ((count($group1RightExtent->right()->families) > $path1FamilyIndex) &&
                    ($group1RightExtent->families[$path1FamilyIndex] == $group1RightExtent->left()->families[$path1FamilyIndex]))) {
                $group1RightExtent = &$group1RightExtent->right();
                echo "Bumped left family right extent over 1.<br>";
            }
-*/
            $group1LeftNeighbor = &$group1LeftExtent->left();
            $group1RightNeighbor = &$group1RightExtent->right();
   
@@ -445,14 +443,12 @@ function consolidate(&$path1, &$path2) {
        $group2LeftNeighbor = &$group2LeftExtent->left();
 
        if ($path2->families[$path2FamilyIndex]->leftLocked()) {
-/*
            while ($group2LeftExtent->leftLocked() ||
                   ((count($group2LeftExtent->left()->families) > $path2FamilyIndex) &&
                    ($group2LeftExtent->families[$path2FamilyIndex] == $group2LeftExtent->right()->families[$path2FamilyIndex]))) {
                $group2LeftExtent = &$group2LeftExtent->left();
                echo "Bumped right family left extent over 1, to " . $group2LeftExtent->index . ".<br>";
            }
-*/           
            $group2RightNeighbor = &$group2RightExtent->right();
            $group2LeftNeighbor = &$group2LeftExtent->left();
   
@@ -497,17 +493,26 @@ function consolidate(&$path1, &$path2) {
        $group2LeftNeighbor = &$group2LeftExtent->left();
        $group2RightNeighbor = &$group2RightExtent->right();
 
-       // if they're not already next to each other
-       if ($group1RightNeighbor != $group2LeftExtent) {
-           $group1RightExtent->right = &$group2LeftExtent;
-           $group2LeftExtent->left = &$group1RightExtent;
-           $group1RightNeighbor->left = &$group2RightExtent;
-           $group2RightExtent->right = &$group1RightNeighbor;
-           $group2LeftNeighbor->right = &$group2RightNeighbor;
-           $group2RightNeighbor->left = &$group2LeftNeighbor;
-       }
-
-   }
+        // if they're not already next to each other
+        if ($group1RightNeighbor != $group2LeftExtent) {
+            if ($path1->families[$index1stUnique]->rightPath()->right() != $path2) {
+                $group1RightExtent->right = &$group2LeftExtent;
+                $group2LeftExtent->left = &$group1RightExtent;
+                $group1RightNeighbor->left = &$group2RightExtent;
+                $group2RightExtent->right = &$group1RightNeighbor;
+                $group2LeftNeighbor->right = &$group2RightNeighbor;
+                $group2RightNeighbor->left = &$group2LeftNeighbor;
+            } else if ($path2->families[$index1stUnique]->leftPath()->left() != $path1) {
+                $group1RightExtent->right = &$group2LeftExtent;
+                $group2LeftExtent->left = &$group1RightExtent;
+                $group1RightNeighbor->left = &$group1LeftNeighbor;
+                $group1LeftNeighbor->right = &$group1RightNeighbor;
+                $group2LeftNeighbor->right = &$group1LeftExtent;
+                $group1LeftExtent->left = &$group2LeftNeighbor;
+            }
+        }
+        if ($j == 1) return (0);
+    }
 
  
 
@@ -647,8 +652,8 @@ function printTheChart(&$grid) {
   echo "</table>\n<br><br><br>";
 }
 
-$targetAncestor = "Bartlett-249";
-//$targetAncestor = "Bartlett-297";
+//$targetAncestor = "Bartlett-249";
+$targetAncestor = "Bartlett-297";
 $base = "Holmes-8874";
 //$base = "Griffith-5239";
 
