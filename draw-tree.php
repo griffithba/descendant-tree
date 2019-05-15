@@ -24,12 +24,12 @@ class Person {
     // whether this is the base person (bottom of the chart)
     var $isBase = FALSE;
 
-   function __construct(&$rawData = null, &$parent = null) {
-       $this->rawData = &$rawData;
-       $this->rawData["object"] = $this;
-       if ($parent != null){
-           $this->parents[] = &$parent;
-       }
+    function __construct(&$rawData = null, &$parent = null) {
+        $this->rawData = &$rawData;
+        $this->rawData["object"] = $this;
+        if ($parent != null){
+            $this->parents[] = &$parent;
+        }
     }
 
     function getId() {
@@ -77,86 +77,86 @@ class Person {
 
 // a string of people that goes from the target ancestor to the base person
 class Path {
-   // array of persons in this path
-   var $persons = array();
-   // index of path in array
-   var $index;
-   // family groups this path is part of
-   var $families = array();
-   // neighbor paths to the left and right
-   var $left;
-   var $right;
+    // array of persons in this path
+    var $persons = array();
+    // index of path in array
+    var $index;
+    // family groups this path is part of
+    var $families = array();
+    // neighbor paths to the left and right
+    var $left;
+    var $right;
     // paths that must be next to this path
-   var $mustBeNeighbor = array(null, null);
+    var $mustBeNeighbor = array(null, null);
 
-   function __construct($index = -1) {
-       $this->index = $index;
-   }
+    function __construct($index = -1) {
+        $this->index = $index;
+    }
 
     // returns the path to the left of this one
-   function &left() {
-       return ($this->left);
-   }
+    function &left() {
+        return ($this->left);
+    }
 
     // returns the path to the right of this one
-   function &right() {
-       return ($this->right);
-   }
+    function &right() {
+        return ($this->right);
+    }
 
     // returns this path (so paths and families can be treated the same way)
-   function &leftPath() {
-       return $this;
-   }
+    function &leftPath() {
+        return $this;
+    }
 
     // returns this path (so paths and families can be treated the same way)
-   function &rightPath() {
-       return $this;
-   }
+    function &rightPath() {
+        return $this;
+    }
 
     // returns true if the path to the left of this one must be next to this one
-   function leftLocked() {
-       for($i=0; $i<2; $i++) {
-           if ($this->mustBeNeighbor[$i] == $this->left) {
-               //echo "&nbsp;&nbsp;Left side of path " . $this->index . " is locked.<br>";
-               return TRUE;
-           }
-       }
-       return FALSE;
-   }
+    function leftLocked() {
+        for($i=0; $i<2; $i++) {
+            if ($this->mustBeNeighbor[$i] == $this->left) {
+                //echo "&nbsp;&nbsp;Left side of path " . $this->index . " is locked.<br>";
+                return TRUE;
+            }
+        }
+        return FALSE;
+    }
 
     // returns true if the path to the right of this one must be next to this one
-   function rightLocked() {
+    function rightLocked() {
         for($i=0; $i<2; $i++) {
-           if ($this->mustBeNeighbor[$i] == $this->right) {
-               //echo "&nbsp;&nbsp;Right side of path " . $this->index . " is locked.<br>";
-               return TRUE;
-           }
-       }
-       return FALSE;
-   }
+            if ($this->mustBeNeighbor[$i] == $this->right) {
+                //echo "&nbsp;&nbsp;Right side of path " . $this->index . " is locked.<br>";
+                return TRUE;
+            }
+        }
+        return FALSE;
+    }
 
     // returns true if the paths to the left and right of this one must both be next to this one
-   function neighborsLocked() {
-       return ($this->rightLocked() && $this->leftLocked());
-   }
+    function neighborsLocked() {
+        return ($this->rightLocked() && $this->leftLocked());
+    }
 
     // returns true if this path is locked to a path outside of its smallest family
-   function lockedToEdgeOfFamily() {
-       for($i=0; $i<2 && $this->mustBeNeighbor[$i]!=null; $i++) {
-           if (!in_array($this->mustBeNeighbor[$i], $this->families[count($this->families)-2]->paths)) {
-               echo "&nbsp;&nbsp;Path " . $this->index . " is locked to the edge of a family already.<br>";
-               return TRUE;
-           }
-       }
-       return FALSE;
-   }
+    function lockedToEdgeOfFamily() {
+        for($i=0; $i<2 && $this->mustBeNeighbor[$i]!=null; $i++) {
+            if (!in_array($this->mustBeNeighbor[$i], $this->families[count($this->families)-2]->paths)) {
+                echo "&nbsp;&nbsp;Path " . $this->index . " is locked to the edge of a family already.<br>";
+                return TRUE;
+            }
+        }
+        return FALSE;
+    }
 
-   function isPath(){
-       return TRUE;
-   }
-   function isFamily(){
-       return FALSE;
-   }
+    function isPath(){
+        return TRUE;
+    }
+    function isFamily(){
+        return FALSE;
+    }
 }
 
 // a collection of paths which must be grouped together because of sibling relationships
@@ -257,241 +257,240 @@ class Cell {
 // Recursive function to find kids and kids’ kids and kids’ kids’ kids...
 // It also puts together all of the paths between the base person and target person and groups the paths into families.
 function findKids(&$parent, &$people, &$currentPathIndex, &$paths, &$families, $parentFamilyIndex) {
-   $paths[$currentPathIndex]->persons[] = &$parent;
-   if(!$parent->kidsSearched){
-       for ($i=0; $i<count($people); $i++){  // Loop through everyone
-           if ($people[$i]["Father"] == $parent->getId() || $people[$i]["Mother"] == $parent->getId()){
-               $parent->addKid($people[$i]);  // Establish parent-child connection
-           }
-       }
-       $parent->kidsSearched = TRUE;
-   }
-   $currentFamilyIndex = $parentFamilyIndex;
-   $parentPath = clone $paths[$currentPathIndex];  // temp copy of parent's path to use for kids after first
-   if (count($parent->kids) > 1) {
-       $families[] = new Family($paths[$currentPathIndex], count($families));
-       $currentFamilyIndex = count($families) - 1;
+    $paths[$currentPathIndex]->persons[] = &$parent;
+    if(!$parent->kidsSearched){
+        for ($i=0; $i<count($people); $i++){  // Loop through everyone
+            if ($people[$i]["Father"] == $parent->getId() || $people[$i]["Mother"] == $parent->getId()){
+                $parent->addKid($people[$i]);  // Establish parent-child connection
+            }
+        }
+        $parent->kidsSearched = TRUE;
+    }
+    $currentFamilyIndex = $parentFamilyIndex;
+    $parentPath = clone $paths[$currentPathIndex];  // temp copy of parent's path to use for kids after first
+    if (count($parent->kids) > 1) {
+        $families[] = new Family($paths[$currentPathIndex], count($families));
+        $currentFamilyIndex = count($families) - 1;
 //        echo "Added path " . $currentPathIndex . " to new family " . $currentFamilyIndex . "<br>";
-   }
-   for($i=0; $i<count($parent->kids); $i++) { // Loop through all of this person’s kids
-       if ($i > 0) {
-           $paths[$currentPathIndex] = clone $parentPath;
-           $paths[$currentPathIndex]->index = $currentPathIndex;
-           $families[$currentFamilyIndex]->paths[] = &$paths[$currentPathIndex];
-           $paths[$currentPathIndex]->families[] = &$families[$currentFamilyIndex];
+    }
+    for($i=0; $i<count($parent->kids); $i++) { // Loop through all of this person’s kids
+        if ($i > 0) {
+            $paths[$currentPathIndex] = clone $parentPath;
+            $paths[$currentPathIndex]->index = $currentPathIndex;
+            $families[$currentFamilyIndex]->paths[] = &$paths[$currentPathIndex];
+            $paths[$currentPathIndex]->families[] = &$families[$currentFamilyIndex];
 //            echo "Added path " . $currentPathIndex . " to family " . $currentFamilyIndex . "<br>";
-       }
-       $parent->kids[$i]->generation = max($parent->kids[$i]->generation, $parent->generation + 1);
-       if($parent->kids[$i]->isBase) { // If we’re at the base person we’ve completed another path
-           $paths[$currentPathIndex]->persons[] = &$parent->kids[$i];
-           $currentPathIndex++;
-       } else {
-           findKids($parent->kids[$i], $people, $currentPathIndex, $paths, $families, $currentFamilyIndex);
-       }
-   }
+        }
+        $parent->kids[$i]->generation = max($parent->kids[$i]->generation, $parent->generation + 1);
+        if($parent->kids[$i]->isBase) { // If we’re at the base person we’ve completed another path
+            $paths[$currentPathIndex]->persons[] = &$parent->kids[$i];
+            $currentPathIndex++;
+        } else {
+            findKids($parent->kids[$i], $people, $currentPathIndex, $paths, $families, $currentFamilyIndex);
+        }
+    }
     if ($currentFamilyIndex != $parentFamilyIndex && $parentFamilyIndex >= 0) {
-       for ($i=0; $i<count($families[$currentFamilyIndex]->paths); $i++) {
-           if (!in_array($families[$currentFamilyIndex]->paths[$i], $families[$parentFamilyIndex]->paths)) {
-               $families[$parentFamilyIndex]->paths[] = &$families[$currentFamilyIndex]->paths[$i];
-               $families[$currentFamilyIndex]->paths[$i]->families[] = $families[$parentFamilyIndex];
+        for ($i=0; $i<count($families[$currentFamilyIndex]->paths); $i++) {
+            if (!in_array($families[$currentFamilyIndex]->paths[$i], $families[$parentFamilyIndex]->paths)) {
+                $families[$parentFamilyIndex]->paths[] = &$families[$currentFamilyIndex]->paths[$i];
+                $families[$currentFamilyIndex]->paths[$i]->families[] = $families[$parentFamilyIndex];
 //                echo "Added path " . $families[$currentFamilyIndex]->paths[$i]->index . " to family " . $parentFamilyIndex . "<br>";
-           }
-       }
-   }
+            }
+        }
+    }
 }
 
 
 // Evaluate which paths must be placed next to each other
 function findNeighbors (&$families) {
-   for ($i=0; $i<count($families); $i++) {
-       if (count($families[$i]->paths) == 2) {
-           $families[$i]->paths[0]->mustBeNeighbor[0] = &$families[$i]->paths[1];
-           $families[$i]->paths[1]->mustBeNeighbor[0] = &$families[$i]->paths[0];
+    for ($i=0; $i<count($families); $i++) {
+        if (count($families[$i]->paths) == 2) {
+            $families[$i]->paths[0]->mustBeNeighbor[0] = &$families[$i]->paths[1];
+            $families[$i]->paths[1]->mustBeNeighbor[0] = &$families[$i]->paths[0];
 //            echo "Path " . $families[$i]->paths[0]->index . " must be next to " . $families[$i]->paths[1]->index . "<br>";
-       }
-   }
+        }
+    }
 }
 
 // attempt to shift two paths next to each other  
 function consolidate(&$path1, &$path2) {
-   // path1 will always be left of path2 upon entering here
-   // first figure out the first family that the two paths do not share.
-   $index1stUnique = 0;
-   for ($i=0; $i<min(count($path1->families), count($path2->families)); $i++) {
-       if ($path1->families[$i] != $path2->families[$i]) {
-           $index1stUnique = $i;
-           break;
-       }
-   }
-   echo "&nbsp;&nbsp;Families " . $path1->families[$index1stUnique]->index . " and " . $path2->families[$index1stUnique]->index . " are at index " . $index1stUnique . "<br>";
+    // path1 will always be left of path2 upon entering here
+    // first figure out the first family that the two paths do not share.
+    $index1stUnique = 0;
+    for ($i=0; $i<min(count($path1->families), count($path2->families)); $i++) {
+        if ($path1->families[$i] != $path2->families[$i]) {
+            $index1stUnique = $i;
+            break;
+        }
+    }
+    echo "&nbsp;&nbsp;Families " . $path1->families[$index1stUnique]->index . " and " . $path2->families[$index1stUnique]->index . " are at index " . $index1stUnique . "<br>";
 
-   // make sure neither path is in a non-shared family that has their neighbors on both sides locked down
-   for ($i=$index1stUnique; $i<count($path1->families)-1; $i++) {
-       if ($path1->families[$i]->neighborsLocked()) {
-           echo "&nbsp;&nbsp;They can't because path " . $path1->index . " is in family " . $path1->families[$i]->index . " that's already got both sides locked down.<br>";
-           return(-1);
-       }
-       // also make sure it's not in a family below the 1st unique which is already locked down to a path outside the 1st unique family.
-       for ($j=0; $j<2 && $path1->families[$i]->leftPath()->mustBeNeighbor[$j] != null; $j++) {
-           if (!in_array($path1->families[$i]->leftPath()->mustBeNeighbor[$j], $path1->families[$index1stUnique]->paths)) {
-               echo "&nbsp;&nbsp;Path " . $path1->index . " is part of family " . $path1->families[$i]->index . " that is locked to the edge of family " . $path1->families[$index1stUnique]->index . " already.<br>";
-               return(-1);
-           }
-       }
-       for ($j=0; $j<2 && $path1->families[$i]->rightPath()->mustBeNeighbor[$j] != null; $j++) {
-           if (!in_array($path1->families[$i]->rightPath()->mustBeNeighbor[$j], $path1->families[$index1stUnique]->paths)) {
-               echo "&nbsp;&nbsp;Path " . $path1->index . " is part of a family that is locked to the edge of a family already.<br>";
-               return(-1);
-           }
-       }
-   }
-   for ($i=$index1stUnique; $i<count($path2->families)-1; $i++) {
-       if ($path2->families[$i]->neighborsLocked()) {
-           echo "&nbsp;&nbsp;They can't because path " . $path2->index . " is in family " . $path2->families[$i]->index . " that's already got both sides locked down.<br>";
-           return(-1);
-       }
-       // also make sure it's not in a family below the 1st unique which is already locked down to a path outside the 1st unique family.
-       for ($j=0; $j<2 && $path2->families[$i]->leftPath()->mustBeNeighbor[$j] != null; $j++) {
-           if (!in_array($path2->families[$i]->leftPath()->mustBeNeighbor[$j], $path2->families[$index1stUnique]->paths)) {
-               echo "&nbsp;&nbsp;Path " . $path2->index . " is part of a family that is locked to the edge of a family already.<br>";
-               return(-1);
-           }
-       }
-       for ($j=0; $j<2 && $path2->families[$i]->rightPath()->mustBeNeighbor[$j] != null; $j++) {
-           if (!in_array($path2->families[$i]->rightPath()->mustBeNeighbor[$j], $path2->families[$index1stUnique]->paths)) {
-               echo "&nbsp;&nbsp;Path " . $path2->index . " is part of a family that is locked to the edge of a family already.<br>";
-               return(-1);
-           }
-       }
-   }
+    // make sure neither path is in a non-shared family that has their neighbors on both sides locked down
+    for ($i=$index1stUnique; $i<count($path1->families)-1; $i++) {
+        if ($path1->families[$i]->neighborsLocked()) {
+            echo "&nbsp;&nbsp;They can't because path " . $path1->index . " is in family " . $path1->families[$i]->index . " that's already got both sides locked down.<br>";
+            return(-1);
+        }
+        // also make sure it's not in a family below the 1st unique which is already locked down to a path outside the 1st unique family.
+        for ($j=0; $j<2 && $path1->families[$i]->leftPath()->mustBeNeighbor[$j] != null; $j++) {
+            if (!in_array($path1->families[$i]->leftPath()->mustBeNeighbor[$j], $path1->families[$index1stUnique]->paths)) {
+                echo "&nbsp;&nbsp;Path " . $path1->index . " is part of family " . $path1->families[$i]->index . " that is locked to the edge of family " . $path1->families[$index1stUnique]->index . " already.<br>";
+                return(-1);
+            }
+        }
+        for ($j=0; $j<2 && $path1->families[$i]->rightPath()->mustBeNeighbor[$j] != null; $j++) {
+            if (!in_array($path1->families[$i]->rightPath()->mustBeNeighbor[$j], $path1->families[$index1stUnique]->paths)) {
+                echo "&nbsp;&nbsp;Path " . $path1->index . " is part of a family that is locked to the edge of a family already.<br>";
+                return(-1);
+            }
+        }
+    }
+    for ($i=$index1stUnique; $i<count($path2->families)-1; $i++) {
+        if ($path2->families[$i]->neighborsLocked()) {
+            echo "&nbsp;&nbsp;They can't because path " . $path2->index . " is in family " . $path2->families[$i]->index . " that's already got both sides locked down.<br>";
+            return(-1);
+        }
+        // also make sure it's not in a family below the 1st unique which is already locked down to a path outside the 1st unique family.
+        for ($j=0; $j<2 && $path2->families[$i]->leftPath()->mustBeNeighbor[$j] != null; $j++) {
+            if (!in_array($path2->families[$i]->leftPath()->mustBeNeighbor[$j], $path2->families[$index1stUnique]->paths)) {
+                echo "&nbsp;&nbsp;Path " . $path2->index . " is part of a family that is locked to the edge of a family already.<br>";
+                return(-1);
+            }
+        }
+        for ($j=0; $j<2 && $path2->families[$i]->rightPath()->mustBeNeighbor[$j] != null; $j++) {
+            if (!in_array($path2->families[$i]->rightPath()->mustBeNeighbor[$j], $path2->families[$index1stUnique]->paths)) {
+                echo "&nbsp;&nbsp;Path " . $path2->index . " is part of a family that is locked to the edge of a family already.<br>";
+                return(-1);
+            }
+        }
+    }
 
-   // make sure neither path is already locked down to a path outside of its smallest family, unless they're in the same family
-   if (($path1->lockedToEdgeOfFamily() || $path2->lockedToEdgeOfFamily()) && ($path1->families[$index1stUnique]->isFamily() || $path2->families[$index1stUnique]->isFamily())) {
-       echo "&nbsp;&nbsp;They can't because at least one is already locked to the edge of its family.<br>";
-       return(-1);
-   }
+    // make sure neither path is already locked down to a path outside of its smallest family, unless they're in the same family
+    if (($path1->lockedToEdgeOfFamily() || $path2->lockedToEdgeOfFamily()) && ($path1->families[$index1stUnique]->isFamily() || $path2->families[$index1stUnique]->isFamily())) {
+        echo "&nbsp;&nbsp;They can't because at least one is already locked to the edge of its family.<br>";
+        return(-1);
+    }
 
-   // if they are in the same family, make sure they aren't each locked down to opposite sides of it
-   if ($path1->families[$index1stUnique]->isPath() && $path2->families[$index1stUnique]->isPath()) {
-       for ($j=0; $j<2 && $path1->mustBeNeighbor[$j] != null; $j++) {
-           if (!in_array($path1->mustBeNeighbors[$j], $path1->families[$index1stUnique-1]->paths)) {
-               echo "Paths are each locked down to opposite sides of a family.<br>";
-               return(-1);
-           }
-       }
-       for ($j=0; $j<2 && $path2->mustBeNeighbor[$j] != null; $j++) {
-           if (!in_array($path2->mustBeNeighbors[$j], $path2->families[$index1stUnique-1]->paths)) {
-               echo "Paths are each locked down to opposite sides of a family.<br>";
-               return(-1);
-           }
-       }
-   }
+    // if they are in the same family, make sure they aren't each locked down to opposite sides of it
+    if ($path1->families[$index1stUnique]->isPath() && $path2->families[$index1stUnique]->isPath()) {
+        for ($j=0; $j<2 && $path1->mustBeNeighbor[$j] != null; $j++) {
+            if (!in_array($path1->mustBeNeighbors[$j], $path1->families[$index1stUnique-1]->paths)) {
+                echo "Paths are each locked down to opposite sides of a family.<br>";
+                return(-1);
+            }
+        }
+        for ($j=0; $j<2 && $path2->mustBeNeighbor[$j] != null; $j++) {
+            if (!in_array($path2->mustBeNeighbors[$j], $path2->families[$index1stUnique-1]->paths)) {
+                echo "Paths are each locked down to opposite sides of a family.<br>";
+                return(-1);
+            }
+        }
+    }
 
 
-   //
-   // move the two families together
-   //
-   for ($i=$index1stUnique, $j=0;
-        $i < count($path1->families) || $i < count($path2->families);
-        $i++, $j++) {
-       $path1FamilyIndex = min($i, count($path1->families) - 1);
-       $path2FamilyIndex = min($i, count($path2->families) - 1);
+    //
+    // move the two families together
+    //
+    for ($i=$index1stUnique, $j=0;
+         $i < count($path1->families) || $i < count($path2->families);
+         $i++, $j++) {
+        $path1FamilyIndex = min($i, count($path1->families) - 1);
+        $path2FamilyIndex = min($i, count($path2->families) - 1);
 
-       echo "Family indeces: " . $path1FamilyIndex . " " . $path2FamilyIndex . "<br>";
+        echo "Family indeces: " . $path1FamilyIndex . " " . $path2FamilyIndex . "<br>";
 
-       $group1LeftExtent = &$path1->families[$path1FamilyIndex]->leftPath();
-       $group1RightExtent = &$path1->families[$path1FamilyIndex]->rightPath();
+        $group1LeftExtent = &$path1->families[$path1FamilyIndex]->leftPath();
+        $group1RightExtent = &$path1->families[$path1FamilyIndex]->rightPath();
           
-       $group1LeftNeighbor = &$group1LeftExtent->left();
-       $group1RightNeighbor = &$group1RightExtent->right();
+        $group1LeftNeighbor = &$group1LeftExtent->left();
+        $group1RightNeighbor = &$group1RightExtent->right();
 
-       // if a family is locked down on the side facing the other family, then reverse the family. 
-       if ($path1->families[$path1FamilyIndex]->rightLocked()) {
-           while ($group1RightExtent->rightLocked() ||
-                  ((count($group1RightExtent->right()->families) > $path1FamilyIndex) &&
-                   ($group1RightExtent->families[$path1FamilyIndex] == $group1RightExtent->left()->families[$path1FamilyIndex]))) {
-               $group1RightExtent = &$group1RightExtent->right();
-               echo "Bumped left family right extent over 1.<br>";
-           }
-           $group1LeftNeighbor = &$group1LeftExtent->left();
-           $group1RightNeighbor = &$group1RightExtent->right();
+        // if a family is locked down on the side facing the other family, then reverse the family. 
+        if ($path1->families[$path1FamilyIndex]->rightLocked()) {
+            while ($group1RightExtent->rightLocked() ||
+                   ((count($group1RightExtent->right()->families) > $path1FamilyIndex) &&
+                    ($group1RightExtent->families[$path1FamilyIndex] == $group1RightExtent->left()->families[$path1FamilyIndex]))) {
+                $group1RightExtent = &$group1RightExtent->right();
+                echo "Bumped left family right extent over 1.<br>";
+            }
+            $group1LeftNeighbor = &$group1LeftExtent->left();
+            $group1RightNeighbor = &$group1RightExtent->right();
   
-           $group1LeftNeighbor->right = &$group1RightExtent;
-           for ($thisPath=&$group1RightExtent->left(); $thisPath->left()!=$group1LeftNeighbor; $thisPath=&$thisPath->left) {
-               $tempPath = &$thisPath->right();
-               $thisPath->right = &$thisPath->left();
-               $thisPath->left = &$tempPath;
-           }
-           $tempPath = &$group1RightExtent->left();
-           $group1RightExtent->left = &$group1LeftNeighbor;
-           $group1RightExtent->right = &$tempPath;
-           $group1RightNeighbor->left = &$group1LeftExtent;
-           $group1LeftExtent->left = &$group1LeftExtent->right();
-           $group1LeftExtent->right = &$group1RightNeighbor;
+            $group1LeftNeighbor->right = &$group1RightExtent;
+            for ($thisPath=&$group1RightExtent->left(); $thisPath->left()!=$group1LeftNeighbor; $thisPath=&$thisPath->left) {
+                $tempPath = &$thisPath->right();
+                $thisPath->right = &$thisPath->left();
+                $thisPath->left = &$tempPath;
+            }
+            $tempPath = &$group1RightExtent->left();
+            $group1RightExtent->left = &$group1LeftNeighbor;
+            $group1RightExtent->right = &$tempPath;
+            $group1RightNeighbor->left = &$group1LeftExtent;
+            $group1LeftExtent->left = &$group1LeftExtent->right();
+            $group1LeftExtent->right = &$group1RightNeighbor;
 
-           echo "Reversed the order of family " . $path1->families[$path1FamilyIndex]->index . ".<br>";
-           $group1LeftExtent = &$path1->families[$path1FamilyIndex]->leftPath();
-           $group1RightExtent = &$path1->families[$path1FamilyIndex]->rightPath();
-           $group1LeftNeighbor = &$group1LeftExtent->left();
-           $group1RightNeighbor = &$group1RightExtent->right();
-       }
+            echo "Reversed the order of family " . $path1->families[$path1FamilyIndex]->index . ".<br>";
+            $group1LeftExtent = &$path1->families[$path1FamilyIndex]->leftPath();
+            $group1RightExtent = &$path1->families[$path1FamilyIndex]->rightPath();
+            $group1LeftNeighbor = &$group1LeftExtent->left();
+            $group1RightNeighbor = &$group1RightExtent->right();
+        }
 
-       $group2LeftExtent = &$path2->families[$path2FamilyIndex]->leftPath();
-       $group2RightExtent = &$path2->families[$path2FamilyIndex]->rightPath();
+        $group2LeftExtent = &$path2->families[$path2FamilyIndex]->leftPath();
+        $group2RightExtent = &$path2->families[$path2FamilyIndex]->rightPath();
           
-       $group2RightNeighbor = &$group2RightExtent->right();
-       $group2LeftNeighbor = &$group2LeftExtent->left();
+        $group2RightNeighbor = &$group2RightExtent->right();
+        $group2LeftNeighbor = &$group2LeftExtent->left();
 
-       if ($path2->families[$path2FamilyIndex]->leftLocked()) {
-           while ($group2LeftExtent->leftLocked() ||
-                  ((count($group2LeftExtent->left()->families) > $path2FamilyIndex) &&
-                   ($group2LeftExtent->families[$path2FamilyIndex] == $group2LeftExtent->right()->families[$path2FamilyIndex]))) {
-               $group2LeftExtent = &$group2LeftExtent->left();
-               echo "Bumped right family left extent over 1, to " . $group2LeftExtent->index . ".<br>";
-           }
-           $group2RightNeighbor = &$group2RightExtent->right();
-           $group2LeftNeighbor = &$group2LeftExtent->left();
+        if ($path2->families[$path2FamilyIndex]->leftLocked()) {
+            while ($group2LeftExtent->leftLocked() ||
+                   ((count($group2LeftExtent->left()->families) > $path2FamilyIndex) &&
+                    ($group2LeftExtent->families[$path2FamilyIndex] == $group2LeftExtent->right()->families[$path2FamilyIndex]))) {
+                $group2LeftExtent = &$group2LeftExtent->left();
+                echo "Bumped right family left extent over 1, to " . $group2LeftExtent->index . ".<br>";
+            }
+            $group2RightNeighbor = &$group2RightExtent->right();
+            $group2LeftNeighbor = &$group2LeftExtent->left();
   
-           $group2RightNeighbor->left = &$group2LeftExtent;
-           for ($thisPath=&$group2LeftExtent->right(); $thisPath->right()!=$group2RightNeighbor; $thisPath=&$thisPath->right) {
-               $tempPath = &$thisPath->left();
-               $thisPath->left = &$thisPath->right();
-               $thisPath->right = &$tempPath;
-           }
-           $tempPath = &$group2LeftExtent->right();
-           $group2LeftExtent->right = &$group2RightNeighbor;
-           $group2LeftExtent->left = &$tempPath;
-           $group2LeftNeighbor->right = &$group2RightExtent;
-           $group2RightExtent->right = &$group2RightExtent->right();
-           $group2RightExtent->left = &$group2LeftNeighbor;
+            $group2RightNeighbor->left = &$group2LeftExtent;
+            for ($thisPath=&$group2LeftExtent->right(); $thisPath->right()!=$group2RightNeighbor; $thisPath=&$thisPath->right) {
+                $tempPath = &$thisPath->left();
+                $thisPath->left = &$thisPath->right();
+                $thisPath->right = &$tempPath;
+            }
+            $tempPath = &$group2LeftExtent->right();
+            $group2LeftExtent->right = &$group2RightNeighbor;
+            $group2LeftExtent->left = &$tempPath;
+            $group2LeftNeighbor->right = &$group2RightExtent;
+            $group2RightExtent->right = &$group2RightExtent->right();
+            $group2RightExtent->left = &$group2LeftNeighbor;
 
-           echo "Reversed the order of family " . $path2->families[$path2FamilyIndex]->index . ".<br>";
-           $group2RightExtent = &$path2->families[$path2FamilyIndex]->rightPath();
-           $group2LeftExtent = &$path2->families[$path2FamilyIndex]->leftPath();
-           $group2RightNeighbor = &$group2RightExtent->right();
-           $group2LeftNeighbor = &$group2LeftExtent->left();
+            echo "Reversed the order of family " . $path2->families[$path2FamilyIndex]->index . ".<br>";
+            $group2RightExtent = &$path2->families[$path2FamilyIndex]->rightPath();
+            $group2LeftExtent = &$path2->families[$path2FamilyIndex]->leftPath();
+            $group2RightNeighbor = &$group2RightExtent->right();
+            $group2LeftNeighbor = &$group2LeftExtent->left();
 
-       }
+        }
 
+        // if the left is tied to its neighbor by lock or by family tie
+        while ($group1LeftExtent->leftLocked() ||
+               ((count($group1LeftExtent->left()->families) > $path1FamilyIndex) &&
+                ($group1LeftExtent->families[$path1FamilyIndex] == $group1LeftExtent->left()->families[$path1FamilyIndex]))) {
+            $group1LeftExtent = &$group1LeftExtent->left();
+            echo "Bumped left family extent over 1.<br>";
+        }
 
-       // if the left is tied to its neighbor by lock or by family tie
-       while ($group1LeftExtent->leftLocked() ||
-              ((count($group1LeftExtent->left()->families) > $path1FamilyIndex) &&
-               ($group1LeftExtent->families[$path1FamilyIndex] == $group1LeftExtent->left()->families[$path1FamilyIndex]))) {
-           $group1LeftExtent = &$group1LeftExtent->left();
-           echo "Bumped left family extent over 1.<br>";
-       }
+        // if the right is tied to its neighbor by lock or by family tie
+        while ($group2RightExtent->rightLocked() ||
+               ((count($group2RightExtent->right()->families) > $path2FamilyIndex) &&
+                ($group2RightExtent->families[$path2FamilyIndex] == $group2RightExtent->right()->families[$path2FamilyIndex]))) {
+            $group2RightExtent = &$group2RightExtent->right();
+            echo "Bumped right extent over 1.<br>";
+        }
 
-       // if the right is tied to its neighbor by lock or by family tie
-       while ($group2RightExtent->rightLocked() ||
-              ((count($group2RightExtent->right()->families) > $path2FamilyIndex) &&
-               ($group2RightExtent->families[$path2FamilyIndex] == $group2RightExtent->right()->families[$path2FamilyIndex]))) {
-           $group2RightExtent = &$group2RightExtent->right();
-           echo "Bumped right extent over 1.<br>";
-       }
-
-       $group2LeftNeighbor = &$group2LeftExtent->left();
-       $group2RightNeighbor = &$group2RightExtent->right();
+        $group2LeftNeighbor = &$group2LeftExtent->left();
+        $group2RightNeighbor = &$group2RightExtent->right();
 
         // if they're not already next to each other
         if ($group1RightNeighbor != $group2LeftExtent) {
@@ -514,142 +513,155 @@ function consolidate(&$path1, &$path2) {
         if ($j == 1) return (0);
     }
 
- 
+    //
+    // lock the paths to each other
+    //
+    if ($path1->right() == $path2 && $path2->left() == $path1) {
+        if ($path1->mustBeNeighbor[0] == null) {
+            $path1->mustBeNeighbor[0] = &$path2;
+        } else {
+            $path1->mustBeNeighbor[1] = &$path2;
+        }
+        if ($path2->mustBeNeighbor[0] == null) {
+            $path2->mustBeNeighbor[0] = &$path1;
+        } else {
+            $path2->mustBeNeighbor[1] = &$path1;
+        }
+    }
+    
+    return (0);
 
-return (0);
-   //
-   // move the paths to the edges of their families so they are next to each other
-   //
-   if ($path1->families[$index1stUnique]->rightPath() != $path1) {
-       // if path1 is locked on the right, we flip everything from path1 to the right edge of the family
-       if ($path1->rightLocked()) {
-           $group1LeftNeighbor = &$path1->left();
-           $group1RightNeighbor = $path1->families[$index1stUnique]->right();
-           $group1LeftExtent = &$path1;
-           $group1RightExtent = &$path1->families[$index1stUnique]->rightPath();
+/*    
+    //
+    // move the paths to the edges of their families so they are next to each other
+    //
+    if ($path1->families[$index1stUnique]->rightPath() != $path1) {
+        // if path1 is locked on the right, we flip everything from path1 to the right edge of the family
+        if ($path1->rightLocked()) {
+            $group1LeftNeighbor = &$path1->left();
+            $group1RightNeighbor = $path1->families[$index1stUnique]->right();
+            $group1LeftExtent = &$path1;
+            $group1RightExtent = &$path1->families[$index1stUnique]->rightPath();
 
-           echo "Need to flip " . $path1->index . "<br>";
+            echo "Need to flip " . $path1->index . "<br>";
 
-       } else { // else we just slide path1 and whatever it may be locked to on the left all to the right. 
-           $path1LeftExtent = &$path1->leftPath();
-           while ($path1LeftExtent->leftLocked() ||
-                  ((count($path1LeftExtent->left()->families) > $index1stUnique) &&
-                   ($path1LeftExtent->families[$index1stUnique] == $path1LeftExtent->left()->families[$index1stUnique]))) {
-               $path1LeftExtent = &$path1LeftExtent->left();
-               echo "Bumped left path extent over 1.<br>";
-           }
-           $path1RightExtent = &$path1;
-           $group1LeftNeighbor = &$path1LeftExtent->left();
-           $group1RightNeighbor = &$path1RightExtent->right();
-           $newSpotLeft = &$path1->families[$index1stUnique]->right();
-           $newSpotRight = &$path1->families[$index1stUnique]->rightPath();
+        } else { // else we just slide path1 and whatever it may be locked to on the left all to the right. 
+            $path1LeftExtent = &$path1->leftPath();
+            while ($path1LeftExtent->leftLocked() ||
+                   ((count($path1LeftExtent->left()->families) > $index1stUnique) &&
+                    ($path1LeftExtent->families[$index1stUnique] == $path1LeftExtent->left()->families[$index1stUnique]))) {
+                $path1LeftExtent = &$path1LeftExtent->left();
+                echo "Bumped left path extent over 1.<br>";
+            }
+            $path1RightExtent = &$path1;
+            $group1LeftNeighbor = &$path1LeftExtent->left();
+            $group1RightNeighbor = &$path1RightExtent->right();
+            $newSpotLeft = &$path1->families[$index1stUnique]->right();
+            $newSpotRight = &$path1->families[$index1stUnique]->rightPath();
 
-           $group1LeftNeighbor->left = &$group1RightNeighbor;
-           $group1RightNeighbor->right = &$group1LeftNeighbor;
-           $path1LeftExtent->left = &$newSpotLeft;
-           $newSpotLeft->right = &$path1LeftExtent;
-           $path1RightExtent->right = &$newSpotRight;
-           $newSpotRight->left = &$path1RightExtent;
-       }
-   } else echo "Path " . $path1->index . " already at left edge of family.<br>";
+            $group1LeftNeighbor->left = &$group1RightNeighbor;
+            $group1RightNeighbor->right = &$group1LeftNeighbor;
+            $path1LeftExtent->left = &$newSpotLeft;
+            $newSpotLeft->right = &$path1LeftExtent;
+            $path1RightExtent->right = &$newSpotRight;
+            $newSpotRight->left = &$path1RightExtent;
+        }
+    } else echo "Path " . $path1->index . " already at left edge of family.<br>";
 
-   if ($path2->families[$index1stUnique]->leftPath() != $path2) {
-       // if path2 is locked on the left, we flip everything from path2 to the left edge of the family
-       if ($path2->leftLocked()) {
-           echo "Need to flip " . $path2->index . "<br>";
+    if ($path2->families[$index1stUnique]->leftPath() != $path2) {
+        // if path2 is locked on the left, we flip everything from path2 to the left edge of the family
+        if ($path2->leftLocked()) {
+            echo "Need to flip " . $path2->index . "<br>";
 
-       } else {  // else we just slide path2 and whatever it may be locked to on the right all to the left.
-           $path2RightExtent = &$path2->rightPath();
-           while ($path2RightExtent->rightLocked() ||
-                  ((count($path2RightExtent->right()->families) > $index1stUnique) &&
-                   ($path2RightExtent->families[$index1stUnique] == $path2RightExtent->right()->families[$index1stUnique]))) {
-               $path2RightExtent = &$path2RightExtent->right();
-               echo "Bumped right path extent over 1.<br>";
-           }
-           $path2LefttExtent = &$path2;
-           $group2RightNeighbor = &$path2RightExtent->right();
-           $group2LeftNeighbor = &$path2LeftExtent->left();
-           $newSpotRight = &$path2->families[$index1stUnique]->left();
-           $newSpotLeft = &$path2->families[$index1stUnique]->leftPath();
+        } else {  // else we just slide path2 and whatever it may be locked to on the right all to the left.
+            $path2RightExtent = &$path2->rightPath();
+            while ($path2RightExtent->rightLocked() ||
+                   ((count($path2RightExtent->right()->families) > $index1stUnique) &&
+                    ($path2RightExtent->families[$index1stUnique] == $path2RightExtent->right()->families[$index1stUnique]))) {
+                $path2RightExtent = &$path2RightExtent->right();
+                echo "Bumped right path extent over 1.<br>";
+            }
+            $path2LefttExtent = &$path2;
+            $group2RightNeighbor = &$path2RightExtent->right();
+            $group2LeftNeighbor = &$path2LeftExtent->left();
+            $newSpotRight = &$path2->families[$index1stUnique]->left();
+            $newSpotLeft = &$path2->families[$index1stUnique]->leftPath();
 
-           $group2RightNeighbor->right = &$group2LeftNeighbor;
-           $group2LeftNeighbor->left = &$group2RightNeighbor;
-           $path2RightExtent->right = &$newSpotRight;
-           $newSpotRight->left = &$path2RightExtent;
-           $path2LeftExtent->left = &$newSpotLeft;
-           $newSpotLeft->right = &$path2LeftExtent;
-       }
-   } else echo "Path " . $path2->index . " already at right edge of family.<br>";
+            $group2RightNeighbor->right = &$group2LeftNeighbor;
+            $group2LeftNeighbor->left = &$group2RightNeighbor;
+            $path2RightExtent->right = &$newSpotRight;
+            $newSpotRight->left = &$path2RightExtent;
+            $path2LeftExtent->left = &$newSpotLeft;
+            $newSpotLeft->right = &$path2LeftExtent;
+        }
+    } else echo "Path " . $path2->index . " already at right edge of family.<br>";
 
-   //
-   // lock the paths to each other
-   //
-
-   echo "<br>";
-   return(0);
+    echo "<br>";
+    return(0);
+*/
 }
 
 
 // Place all of the people from a path into a given column in the table
 function placePath (&$grid, &$path, $col) {
-   // each generation has four rows: a vertical line, name and info, and two more vertical lines
-   for ($j=0; $j<count($path->persons); $j++) {
-       if ($path->persons[$j] == null) continue;
-       $nameRow = $path->persons[$j]->generation * 4 - 3;
-       if (!$path->persons[$j]->isTarget) {
-           // vertical line above everyone except the top person
-           $grid[$nameRow-1][$col]->text = "|";
-       }
-       $grid[$nameRow][$col]->person = &$path->persons[$j];
-       if (!$path->persons[$j]->isBase) {
-           // two vertical lines below everyone except the bottom person
-           $grid[$nameRow+1][$col]->text = "|";
-           $grid[$nameRow+2][$col]->text = "|";
-       }
-   }
+    // each generation has four rows: a vertical line, name and info, and two more vertical lines
+    for ($j=0; $j<count($path->persons); $j++) {
+        if ($path->persons[$j] == null) continue;
+        $nameRow = $path->persons[$j]->generation * 4 - 3;
+        if (!$path->persons[$j]->isTarget) {
+            // vertical line above everyone except the top person
+            $grid[$nameRow-1][$col]->text = "|";
+        }
+        $grid[$nameRow][$col]->person = &$path->persons[$j];
+        if (!$path->persons[$j]->isBase) {
+            // two vertical lines below everyone except the bottom person
+            $grid[$nameRow+1][$col]->text = "|";
+            $grid[$nameRow+2][$col]->text = "|";
+        }
+    }
 }
 
 
 // Useful debugging function -- prints one row from the grid
 function printRow(&$row, $rownum) {
-  echo $rownum . "<table style=\"width:100%\" border=\"1\">\n";
-  echo "<tr>\n";
-  for ($j=0; $j<count($row); $j++) {
-      echo "<td align=\"" . $row[$j]->align . "\" colspan=\"1\">";
-      if ($row[$j]->person == null){
-          echo $row[$j]->text . " : " . $row[$j]->colspan;
-      } else {
-          echo $row[$j]->person->getName() . " : " . $row[$j]->colspan;
-      }
-      echo "</td>\n";
-  }
-  echo "</tr>\n";
-  echo "</table>\n<br>";
+    echo $rownum . "<table style=\"width:100%\" border=\"1\">\n";
+    echo "<tr>\n";
+    for ($j=0; $j<count($row); $j++) {
+        echo "<td align=\"" . $row[$j]->align . "\" colspan=\"1\">";
+        if ($row[$j]->person == null){
+            echo $row[$j]->text . " : " . $row[$j]->colspan;
+        } else {
+            echo $row[$j]->person->getName() . " : " . $row[$j]->colspan;
+        }
+        echo "</td>\n";
+    }
+    echo "</tr>\n";
+    echo "</table>\n<br>";
 }
 
 // Print the chart
 function printTheChart(&$grid) {
 //   echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n";
-  for ($i=0; $i<count($grid); $i++) {
-      echo "<tr><!-- ". $i . " -->\n";
-      for ($j=0; $j<count($grid[$i]); ) {
-          echo "<td align=\"" . $grid[$i][$j]->align . "\" colspan=\"" . $grid[$i][$j]->colspan . "\"> <!-- " . $j . " -->";
-          if ($grid[$i][$j]->person == null) {
-              echo $grid[$i][$j]->text;
-          } else {
-              echo "<a href=\"http://www.wikitree.com/wiki/" . $grid[$i][$j]->person->getWTID() . "\">";
-              //echo $grid[$i][$j]->person->getThumb();
-              echo $grid[$i][$j]->person->getName();
-              echo "<br>";
-              echo $grid[$i][$j]->person->getDates();
-              echo "</a>";
-          }
-          echo "</td>\n";
-          $j += $grid[$i][$j]->colspan;
-      }
-      echo "</tr>\n";
-  }
-  echo "</table>\n<br><br><br>";
+    for ($i=0; $i<count($grid); $i++) {
+        echo "<tr><!-- ". $i . " -->\n";
+        for ($j=0; $j<count($grid[$i]); ) {
+            echo "<td align=\"" . $grid[$i][$j]->align . "\" colspan=\"" . $grid[$i][$j]->colspan . "\"> <!-- " . $j . " -->";
+            if ($grid[$i][$j]->person == null) {
+                echo $grid[$i][$j]->text;
+            } else {
+                echo "<a href=\"http://www.wikitree.com/wiki/" . $grid[$i][$j]->person->getWTID() . "\">";
+                //echo $grid[$i][$j]->person->getThumb();
+                echo $grid[$i][$j]->person->getName();
+                echo "<br>";
+                echo $grid[$i][$j]->person->getDates();
+                echo "</a>";
+            }
+            echo "</td>\n";
+            $j += $grid[$i][$j]->colspan;
+        }
+        echo "</tr>\n";
+    }
+    echo "</table>\n<br><br><br>";
 }
 
 //$targetAncestor = "Bartlett-249";
@@ -680,23 +692,23 @@ echo "<br><br>";
 
 // Filter out duplicates and find target ancestor and base
 for ($i=0, $j=0; $i<count($arr[0]["ancestors"]); $i++){ // Loop through decoded json array
-   for($k=0, $found=FALSE; $k<count($ancestors) && $found==FALSE; $k++){ // Loop through already found ancestors
-       // If they match we’ve already got this one so set $found so we exit the loop
-       if($arr[0]["ancestors"][$i]["Name"] == $ancestors[$k]["Name"]) $found = TRUE;
-   }
-   if(!$found) {
-       $ancestors[$j] = &$arr[0]["ancestors"][$i];
-       $ancestors[$j]["object"] = null;
-       if($targetAncestor == $ancestors[$j]["Name"]) {
-           $targetObject = new Person($ancestors[$j]);
-           $targetObject->generation = 1;
-           $targetObject->isTarget = TRUE;
-       } else if ($base == $ancestors[$j]["Name"]) {
-           $baseObject = new Person($ancestors[$j]);
-           $baseObject->isBase = TRUE;
-       }
-       $j++;
-   }
+    for($k=0, $found=FALSE; $k<count($ancestors) && $found==FALSE; $k++){ // Loop through already found ancestors
+        // If they match we’ve already got this one so set $found so we exit the loop
+        if($arr[0]["ancestors"][$i]["Name"] == $ancestors[$k]["Name"]) $found = TRUE;
+    }
+    if(!$found) {
+        $ancestors[$j] = &$arr[0]["ancestors"][$i];
+        $ancestors[$j]["object"] = null;
+        if($targetAncestor == $ancestors[$j]["Name"]) {
+            $targetObject = new Person($ancestors[$j]);
+            $targetObject->generation = 1;
+            $targetObject->isTarget = TRUE;
+        } else if ($base == $ancestors[$j]["Name"]) {
+            $baseObject = new Person($ancestors[$j]);
+            $baseObject->isBase = TRUE;
+        }
+        $j++;
+    }
 }
 
 $paths[$currentPathIndex] = new Path($currentPathIndex);
@@ -717,58 +729,58 @@ $rightMargin->mustBeNeighbor[0] = &$leftMargin;
 
 // create linked list of paths
 for ($i=0; $i<$width; $i++) {
-   if ($i > 0) {
-       $paths[$i]->left = &$paths[$i-1];
-   } else {
-       $leftMargin->right = &$paths[$i];
-       $paths[$i]->left = &$leftMargin;
-   }
-   if ($i < $width-1) {
-       $paths[$i]->right = &$paths[$i+1];
-   } else {
-       $rightMargin->left = &$paths[$i];
-       $paths[$i]->right = &$rightMargin;
-   }
+    if ($i > 0) {
+        $paths[$i]->left = &$paths[$i-1];
+    } else {
+        $leftMargin->right = &$paths[$i];
+        $paths[$i]->left = &$leftMargin;
+    }
+    if ($i < $width-1) {
+        $paths[$i]->right = &$paths[$i+1];
+    } else {
+        $rightMargin->left = &$paths[$i];
+        $paths[$i]->right = &$rightMargin;
+    }
 
-   // While we're here, insert spaces where needed so people line up between paths
-   for ($j=2; $j<$depth; $j++) {
-       if ($paths[$i]->persons[$j]->generation > $j + 1) {
-           for ($k=0; $k<($paths[$i]->persons[$j]->generation - ($j + 1)); $k++) {
-               array_splice($paths[$i]->persons, $j, 0, null);
-               $j++;
-               if ($j>=$depth) break;
-           }
-           if ($j<$depth) break;
-       }
-   }
+    // While we're here, insert spaces where needed so people line up between paths
+    for ($j=2; $j<$depth; $j++) {
+        if ($paths[$i]->persons[$j]->generation > $j + 1) {
+            for ($k=0; $k<($paths[$i]->persons[$j]->generation - ($j + 1)); $k++) {
+                array_splice($paths[$i]->persons, $j, 0, null);
+                $j++;
+                if ($j>=$depth) break;
+            }
+            if ($j<$depth) break;
+        }
+    }
 
-   // Also while we're here, each path must have as it's last family, itself
-   $paths[$i]->families[count($paths[$i]->families)] = &$paths[$i];
+    // Also while we're here, each path must have as it's last family, itself
+    $paths[$i]->families[count($paths[$i]->families)] = &$paths[$i];
 }
 
 findNeighbors($families);
 
 $grid = array();
 for ($j=0; $j<$width; $j++) {
-   for ($i=0; $i<$depth*4; $i++) {
-       $grid[$i][$j] = new Cell($j);
-   }
+    for ($i=0; $i<$depth*4; $i++) {
+        $grid[$i][$j] = new Cell($j);
+    }
 }
 echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n";
 // Place people in grid by path
 for ($thisPath=&$leftMargin->right, $col=0;
     $col<$width;
     $thisPath=&$thisPath->right, $col++) {
-   placePath($grid, $thisPath, $col);
-   echo "<td align=\"center\">" . $thisPath->index;
-   if ($thisPath->mustBeNeighbor[0] != null) {
-       echo " (" . $thisPath->mustBeNeighbor[0]->index;
-       if ($thisPath->mustBeNeighbor[1] != null) {
-           echo ", " . $thisPath->mustBeNeighbor[1]->index;
-       }
-       echo ")";
-   }
-   echo "</td>\n";
+    placePath($grid, $thisPath, $col);
+    echo "<td align=\"center\">" . $thisPath->index;
+    if ($thisPath->mustBeNeighbor[0] != null) {
+        echo " (" . $thisPath->mustBeNeighbor[0]->index;
+        if ($thisPath->mustBeNeighbor[1] != null) {
+            echo ", " . $thisPath->mustBeNeighbor[1]->index;
+        }
+        echo ")";
+    }
+    echo "</td>\n";
 }
 echo "</tr>\n";
 
@@ -776,48 +788,48 @@ printTheChart($grid);
 
 // Rearrange paths for efficiency
 for ($row=2; $row<$depth-1; $row++) { // skip the first generation since there's just one person
-   for ($currentPath = &$leftMargin->right;
-        $currentPath->right != $leftMargin;
-        $currentPath = &$currentPath->right) {
-       if ($currentPath->neighborsLocked()) continue;
-       $nameBreak = FALSE;
-       for ($checkPath = &$currentPath->right; 
-            $checkPath->right != $leftMargin;
-            $checkPath = &$checkPath->right) {
-           if ($checkPath->neighborsLocked()) continue;
-           if ($currentPath->persons[$row] == $checkPath->persons[$row]) {
-               if ($nameBreak) {
-                   // These are duplicates so try to move the paths next to each other.
-                   echo "<br>Paths " . $currentPath->index . " and " . $checkPath->index . " should go next to each other if possible.<br>";
-                   $status = consolidate($currentPath, $checkPath);
-                   if ($status == 0) {
-                       echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n";
-                       // Place people in grid by path
-                       for ($thisPath=&$leftMargin->right, $col=0;
-                       $col<$width;
-                       $thisPath=&$thisPath->right, $col++) {
-                       placePath($grid, $thisPath, $col);
-                       echo "<td align=\"center\">" . $thisPath->index;
-                       if ($thisPath->mustBeNeighbor[0] != null) {
-                           echo " (" . $thisPath->mustBeNeighbor[0]->index;
-                           if ($thisPath->mustBeNeighbor[1] != null) {
-                               echo ", " . $thisPath->mustBeNeighbor[1]->index;
-                           }
-                           echo ")";
-                       }
-                       echo "</td>\n";
-                                       }
-                   echo "</tr>\n";
-                   printTheChart($grid);
-                   }
-               } else {
-                   $currentPath = &$checkPath;
-               }
-           } else {
-               $nameBreak = TRUE;
-           }
-       }
-   }
+    for ($currentPath = &$leftMargin->right;
+         $currentPath->right != $leftMargin;
+         $currentPath = &$currentPath->right) {
+        if ($currentPath->neighborsLocked()) continue;
+        $nameBreak = FALSE;
+        for ($checkPath = &$currentPath->right; 
+             $checkPath->right != $leftMargin;
+             $checkPath = &$checkPath->right) {
+            if ($checkPath->neighborsLocked()) continue;
+            if ($currentPath->persons[$row] == $checkPath->persons[$row]) {
+                if ($nameBreak) {
+                    // These are duplicates so try to move the paths next to each other.
+                    echo "<br>Paths " . $currentPath->index . " and " . $checkPath->index . " should go next to each other if possible.<br>";
+                    $status = consolidate($currentPath, $checkPath);
+                    if ($status == 0) {
+                        echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n";
+                        // Place people in grid by path
+                        for ($thisPath=&$leftMargin->right, $col=0;
+                             $col<$width;
+                             $thisPath=&$thisPath->right, $col++) {
+                            placePath($grid, $thisPath, $col);
+                            echo "<td align=\"center\">" . $thisPath->index;
+                            if ($thisPath->mustBeNeighbor[0] != null) {
+                                echo " (" . $thisPath->mustBeNeighbor[0]->index;
+                                if ($thisPath->mustBeNeighbor[1] != null) {
+                                    echo ", " . $thisPath->mustBeNeighbor[1]->index;
+                                }
+                                echo ")";
+                            }
+                            echo "</td>\n";
+                        }
+                        echo "</tr>\n";
+                        printTheChart($grid);
+                    }
+                } else {
+                    $currentPath = &$checkPath;
+                }
+            } else {
+                $nameBreak = TRUE;
+            }
+        }
+    }
 }
 
 echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n";
@@ -825,51 +837,51 @@ echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=
 for ($thisPath=&$leftMargin->right, $col=0;
     $col<$width;
     $thisPath=&$thisPath->right, $col++) {
-   placePath($grid, $thisPath, $col);
-   echo "<td align=\"center\">" . $thisPath->index;
-   if ($thisPath->mustBeNeighbor[0] != null) {
-       echo " (" . $thisPath->mustBeNeighbor[0]->index;
-       if ($thisPath->mustBeNeighbor[1] != null) {
-           echo ", " . $thisPath->mustBeNeighbor[1]->index;
-       }
-       echo ")";
-   }
-   echo "</td>\n";
+    placePath($grid, $thisPath, $col);
+    echo "<td align=\"center\">" . $thisPath->index;
+    if ($thisPath->mustBeNeighbor[0] != null) {
+        echo " (" . $thisPath->mustBeNeighbor[0]->index;
+        if ($thisPath->mustBeNeighbor[1] != null) {
+            echo ", " . $thisPath->mustBeNeighbor[1]->index;
+        }
+        echo ")";
+    }
+    echo "</td>\n";
 }
 echo "</tr>\n";
 printTheChart($grid);
 
 // Consolidate adjacent duplicate persons
 for ($i=1; $i<$depth*4; $i+=4) { // start at 1st row with name (very 1st is blank), jump by 4 rows (names every 4 rows)
-   for ($j=0; $grid[$i][$j]->endCol() < $width; ) {
-       if (($grid[$i][$j]->person != null) && ($grid[$i][$j]->person == $grid[$i][$grid[$i][$j]->endCol()]->person)) {
-           for ($k=-1; $k<3; $k++) {
-               // if ($k==0) printRow($grid[$i+$k], $i+$k);
-               // combine vertical blocks of 4 cells into 1 vertical block of 4 cells
-               $grid[$i+$k][$grid[$i+$k][$j]->endCol()] = new Cell($grid[$i+$k][$j]->endCol());  // wipe out what was there (cell won't be printed anyway)
-               $grid[$i+$k][$j]->colspan += $grid[$i+$k][$grid[$i+$k][$j]->endCol()]->colspan;  // increase colspan by colspan of covered cell
-               // if ($k==0) printRow($grid[$i+$k], $i+$k);
-           }
-           if (!$grid[$i][$j]->person->isTarget) {
-               if($grid[$i][$j]->colspan > $grid[$i-4][$j]->colspan) { // if child span is bigger than parent span
-                   // Draw horizontal line linking parents
-                   $grid[$i-2][$j]->align = "right";
-                   $grid[$i-2][$j]->text = "<hr width=\"50%\" align=\"right\">";  // first cell
-                   for ($k=1; $k<$grid[$i][$j]->colspan; ) {
-                       if ($grid[$i-2][$j+$k]->endCol() < $grid[$i][$j]->endCol()) {
-                           $grid[$i-2][$j+$k]->text = "<hr width=\"100%\">";  // middle cells
-                       } else {
-                           $grid[$i-2][$j+$k]->align = "left";
-                           $grid[$i-2][$j+$k]->text = "<hr width=\"50%\" align=\"left\">";  //last cell
-                       }
-                       $k+= $grid[$i][$j+$k]->colspan;
-                   }
-               }
-           }
-       } else {
-           $j += $grid[$i][$j]->colspan;
-       }
-   }
+    for ($j=0; $grid[$i][$j]->endCol() < $width; ) {
+        if (($grid[$i][$j]->person != null) && ($grid[$i][$j]->person == $grid[$i][$grid[$i][$j]->endCol()]->person)) {
+            for ($k=-1; $k<3; $k++) {
+                // if ($k==0) printRow($grid[$i+$k], $i+$k);
+                // combine vertical blocks of 4 cells into 1 vertical block of 4 cells
+                $grid[$i+$k][$grid[$i+$k][$j]->endCol()] = new Cell($grid[$i+$k][$j]->endCol());  // wipe out what was there (cell won't be printed anyway)
+                $grid[$i+$k][$j]->colspan += $grid[$i+$k][$grid[$i+$k][$j]->endCol()]->colspan;  // increase colspan by colspan of covered cell
+                // if ($k==0) printRow($grid[$i+$k], $i+$k);
+            }
+            if (!$grid[$i][$j]->person->isTarget) {
+                if($grid[$i][$j]->colspan > $grid[$i-4][$j]->colspan) { // if child span is bigger than parent span
+                    // Draw horizontal line linking parents
+                    $grid[$i-2][$j]->align = "right";
+                    $grid[$i-2][$j]->text = "<hr width=\"50%\" align=\"right\">";  // first cell
+                    for ($k=1; $k<$grid[$i][$j]->colspan; ) {
+                        if ($grid[$i-2][$j+$k]->endCol() < $grid[$i][$j]->endCol()) {
+                            $grid[$i-2][$j+$k]->text = "<hr width=\"100%\">";  // middle cells
+                        } else {
+                            $grid[$i-2][$j+$k]->align = "left";
+                            $grid[$i-2][$j+$k]->text = "<hr width=\"50%\" align=\"left\">";  //last cell
+                        }
+                        $k+= $grid[$i][$j+$k]->colspan;
+                    }
+                }
+            }
+        } else {
+            $j += $grid[$i][$j]->colspan;
+        }
+    }
 }
 
 echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n";
@@ -877,38 +889,38 @@ printTheChart($grid);
 
 // Draw horizontal lines linking siblings
 for ($i=5; $i<$depth*4; $i+=4) {  // start with 2nd row of 2nd generation (contains names)
-   for ($j=0; $grid[$i][$j]->endCol() < $width; ) {
-       // if child span is smaller than parent span
-       if ($grid[$i][$j]->colspan < $grid[$i-4][$j]->colspan) {
-           // Draw horizontal line linking siblings, in last row of previous generation
-           $grid[$i-2][$j]->colspan = $grid[$i][$j]->colspan;
-           $grid[$i-2][$j]->align = "right";
-           $grid[$i-2][$j]->text = "<hr width=\"50%\" align=\"right\">";  // left-most cell
-           for ($k=1; $k<$grid[$i-3][$j]->colspan; ) {
-               $grid[$i-2][$j+$k]->colspan = $grid[$i][$j+$k]->colspan;
-               if ($j + $k + $grid[$i-2][$j+$k]->colspan < $j + $grid[$i-3][$j]->colspan) {
-                   $grid[$i-2][$j+$k]->text = "<hr width=\"100%\">";  // middle cell(s)
-               } else {
-                   $grid[$i-2][$j+$k]->align = "left";
-                   $grid[$i-2][$j+$k]->text = "<hr width=\"50%\" align=\"left\">";  // right-most cell
-               }
-               $k += $grid[$i][$j+$k]->colspan;
-           }
-       }
-       $j += $grid[$i][$j]->colspan;
-   }
+    for ($j=0; $grid[$i][$j]->endCol() < $width; ) {
+        // if child span is smaller than parent span
+        if ($grid[$i][$j]->colspan < $grid[$i-4][$j]->colspan) {
+            // Draw horizontal line linking siblings, in last row of previous generation
+            $grid[$i-2][$j]->colspan = $grid[$i][$j]->colspan;
+            $grid[$i-2][$j]->align = "right";
+            $grid[$i-2][$j]->text = "<hr width=\"50%\" align=\"right\">";  // left-most cell
+            for ($k=1; $k<$grid[$i-3][$j]->colspan; ) {
+                $grid[$i-2][$j+$k]->colspan = $grid[$i][$j+$k]->colspan;
+                if ($j + $k + $grid[$i-2][$j+$k]->colspan < $j + $grid[$i-3][$j]->colspan) {
+                    $grid[$i-2][$j+$k]->text = "<hr width=\"100%\">";  // middle cell(s)
+                } else {
+                    $grid[$i-2][$j+$k]->align = "left";
+                    $grid[$i-2][$j+$k]->text = "<hr width=\"50%\" align=\"left\">";  // right-most cell
+                }
+                $k += $grid[$i][$j+$k]->colspan;
+            }
+        }
+        $j += $grid[$i][$j]->colspan;
+    }
 }
 
 echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n";
 printTheChart($grid);
 // fill in gaps in vertical lines
 for ($i=0; $i<$depth*4-1; $i++) {
-   for ($j=0; $j < $width; ) {
-       if ($grid[$i][$j]->text[0] == "|" && $grid[$i+1][$j]->text == "&nbsp;" && $grid[$i+1][$j]->person == null) {
-           $grid[$i+1][$j]->text = "|";
-       }
-       $j += $grid[$i][$j]->colspan;
-   }
+    for ($j=0; $j < $width; ) {
+        if ($grid[$i][$j]->text[0] == "|" && $grid[$i+1][$j]->text == "&nbsp;" && $grid[$i+1][$j]->person == null) {
+            $grid[$i+1][$j]->text = "|";
+        }
+        $j += $grid[$i][$j]->colspan;
+    }
 }
 echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n";
 printTheChart($grid);
