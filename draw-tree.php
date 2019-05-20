@@ -184,15 +184,12 @@ class Path {
 class Family {
     // the paths that make up the family
     var $paths = array();
-    // the generation that contains siblings
-    var $gen = 0;
     // index of this family in the array of families
     var $index;
 
-    function __construct(&$path, $index, $generation) {
+    function __construct(&$path, $index) {
         $this->paths[0] = &$path;
         $this->index = $index;
-        $this->generation = $generation; 
         if ($this->index != -1)
             $path->addFamily($this);
     }
@@ -294,7 +291,7 @@ function findKids(&$parent, &$people, &$currentPathIndex, &$paths, &$families, $
     $currentFamilyIndex = $parentFamilyIndex;
     $parentPath = clone $paths[$currentPathIndex];  // temp copy of parent's path to use for kids after first
     if (count($parent->kids) > 1) {
-        $families[] = new Family($paths[$currentPathIndex], count($families), $parent->generation);
+        $families[] = new Family($paths[$currentPathIndex], count($families));
         $currentFamilyIndex = count($families) - 1;
 //        echo "Added path " . $currentPathIndex . " to new family " . $currentFamilyIndex . "<br>";
     }
@@ -496,7 +493,7 @@ function consolidate(&$path1, &$path2) {
             $group2LeftNeighbor = &$group2LeftExtent->left();
   
             $group2RightNeighbor->left = &$group2LeftExtent;
-            for ($thisPath=&$group2LeftExtent->right(); $thisPath!=$group2RightExtent; $thisPath=&$thisPath->right) {
+            for ($thisPath=&$group2LeftExtent->right(); $thisPath!=$group2RightExtent; $thisPath=&$thisPath->left()) {
                 $tempPath = &$thisPath->left();
                 $thisPath->left = &$thisPath->right();
                 $thisPath->right = &$tempPath;
