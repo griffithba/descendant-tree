@@ -792,13 +792,13 @@ for ($row=2; $row<$depth-1; $row++) { // skip the first generation since there's
     for ($currentPath = &$leftMargin->right;
          $currentPath->right !== $leftMargin;
          $currentPath = &$currentPath->right) {
-        if ($currentPath->neighborsLocked()) continue;
+        if ($currentPath->neighborsLocked() || $currentPath->persons[$row] == "dummy") continue;
 //        echo "Checking Path " . $currentPath->index . " as left path.<br>";
         $nameBreak = FALSE;
         for ($checkPath = &$currentPath->right; 
              $checkPath->right !== $leftMargin;
              $checkPath = &$checkPath->right) {
-            if ($checkPath->neighborsLocked()) continue;
+            if ($checkPath->neighborsLocked() || $checkPath->persons[$row] == "dummy") continue;
 //            echo "Checking Path " . $checkPath->index . " as right path.<br>";
             if ($currentPath->persons[$row] === $checkPath->persons[$row]) {
                 if ($nameBreak) {
