@@ -447,7 +447,11 @@ function consolidate(&$path1, &$path2) {
                    ((count($group1RightExtent->right()->families) > $path1FamilyIndex) &&
                     ($group1RightExtent->families[$path1FamilyIndex] == $group1RightExtent->right()->families[$path1FamilyIndex]))) {
                 $group1RightExtent = &$group1RightExtent->right();
-                echo "Bumped left family right extent over 1, to " . $group1RightExtent->index . ".<br>";
+                echo "(1)Bumped left family right extent over 1, to " . $group1RightExtent->index . ".<br>";
+                if ($group1RightExtent === $path2) {
+                    echo "Groups of paths are too closely tied together.<br>";
+                    return(-1);
+                }
             }
             $group1LeftNeighbor = &$group1LeftExtent->left();
             $group1RightNeighbor = &$group1RightExtent->right();
@@ -487,7 +491,11 @@ function consolidate(&$path1, &$path2) {
                    ((count($group2LeftExtent->left()->families) > $path2FamilyIndex) &&
                     ($group2LeftExtent->families[$path2FamilyIndex] == $group2LeftExtent->left()->families[$path2FamilyIndex]))) {
                 $group2LeftExtent = &$group2LeftExtent->left();
-                echo "Bumped right family left extent over 1, to " . $group2LeftExtent->index . ".<br>";
+                echo "(1)Bumped right family left extent over 1, to " . $group2LeftExtent->index . ".<br>";
+                if ($group2LeftExtent === $path1) {
+                    echo "Groups of paths are too closely tied together.<br>";
+                    return(-1);
+                }
             }
             $group2RightNeighbor = &$group2RightExtent->right();
             $group2LeftNeighbor = &$group2LeftExtent->left();
@@ -520,7 +528,7 @@ function consolidate(&$path1, &$path2) {
                ((count($group1LeftExtent->left()->families) > $path1FamilyIndex) &&
                 ($group1LeftExtent->families[$path1FamilyIndex] == $group1LeftExtent->left()->families[$path1FamilyIndex]))) {
             $group1LeftExtent = &$group1LeftExtent->left();
-            echo "Bumped left family extent over 1.<br>";
+            echo "(2)Bumped left family left extent over 1, to " . $group1LeftExtent->index . ".<br>";
         }
 
         $group1LeftNeighbor = &$group1LeftExtent->left();
@@ -530,7 +538,7 @@ function consolidate(&$path1, &$path2) {
                ((count($group2RightExtent->right()->families) > $path2FamilyIndex) &&
                 ($group2RightExtent->families[$path2FamilyIndex] == $group2RightExtent->right()->families[$path2FamilyIndex]))) {
             $group2RightExtent = &$group2RightExtent->right();
-            echo "Bumped right extent over 1.<br>";
+            echo "(2)Bumped right family right extent over 1, to " . $group2RightExtent->index . ".<br>";
         }
 
         $group2RightNeighbor = &$group2RightExtent->right();
