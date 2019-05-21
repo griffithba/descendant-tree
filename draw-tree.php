@@ -661,8 +661,10 @@ function printTheChart(&$grid) {
 //$targetAncestor = "Bartlett-249";
 //$targetAncestor = "Bartlett-297";
 //$targetAncestor = "Doty-42";
-$targetAncestor = "Cooke-36";
-$base = "Holmes-8874";
+//$targetAncestor = "Cooke-36";
+$targetAncestor = $_POST["target"];
+$base = $_POST["base"];
+//$base = "Holmes-8874";
 //$base = "Griffith-5239";
 
 // Array to hold only one copy of each ancestor
@@ -802,7 +804,7 @@ for ($row=2; $row<$depth-1; $row++) { // skip the first generation since there's
                 if ($nameBreak) {
                     // These are duplicates so try to move the paths next to each other.
                     echo "<br>Paths " . $currentPath->index . " and " . $checkPath->index . " should go next to each other if possible (generation " . $row;
-                    echo " " . $currentPath->persons[$row]->getWTID() . " and " . $checkPath->persons[$row]->getWTID() . ")<br>";
+                    echo " " . $currentPath->persons[$row]->getWTID() . ")<br>";
                     $status = consolidate($currentPath, $checkPath);
                     if ($status == 0) {
                         echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n";
