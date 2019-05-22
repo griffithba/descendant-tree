@@ -632,9 +632,9 @@ function placePath (&$grid, &$path, $col) {
 function printTheChart(&$grid) {
 //   echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n";
     for ($i=0; $i<count($grid); $i++) {
-        echo "<tr><!-- ". $i . " -->\n";
+        echo "<tr>\n";
         for ($j=0; $j<count($grid[$i]); ) {
-            echo "<td align=\"" . $grid[$i][$j]->align . "\" colspan=\"" . $grid[$i][$j]->colspan . "\"> <!-- " . $j . " -->";
+            echo "<td align=\"" . $grid[$i][$j]->align . "\" colspan=\"" . $grid[$i][$j]->colspan . "\">";
             if ($grid[$i][$j]->person == null) {
                 echo $grid[$i][$j]->text;
             } else {
