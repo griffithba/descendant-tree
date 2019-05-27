@@ -20,9 +20,15 @@ if (isset($_POST["email"]) && isset($_POST["password"])) {
 <body>
 <?php
 
-if (isset($userName)) {
+if (isset($_GET['nologin']) && $_GET['nologin'] == '1') {
+    $noLogin = $_GET['nologin'];
+} else $noLogin = FALSE;
+
+if (isset($userName) || $noLogin) {
     echo "<div class=\"content\">\n<br>\n";
-    echo "Logged in as " . $userName . ".<br>\n<br>\n";
+    if (isset($userName)) {
+        echo "Logged in as " . $userName . ".<br>\n<br>\n";
+    }
 	echo "<form action=\"draw-tree.php\" method=\"post\">\n";
 	echo "Show all paths of descent from person A to person B:<br>\n";
 	echo "Person A: <input type=\"text\" name=\"target\"><br>\n";
@@ -40,7 +46,9 @@ if (isset($userName)) {
 	echo "email: <input type=\"text\" name=\"email\"><br>\n";
 	echo "password: <input type=\"password\" name=\"password\"><br>\n";
 	echo "<input type=\"submit\" value=\"Login\">\n";
-	echo "</form>\n</div>\n";
+    echo "</form>\n";
+    echo "Click <a href=\"?nologin=1\">here</a> if you want to use the app without logging in.\n";
+    echo "</div>\n";
 }
 ?>
 </body>
