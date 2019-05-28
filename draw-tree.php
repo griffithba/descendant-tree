@@ -7,8 +7,8 @@
 <body>
 <?php
 
+$classes = array();
 $debug;
-echo "<br>";
 if (isset($_POST["debug"]) && $_POST["debug"] == "on") {
     $debug = TRUE;
 } else {
@@ -43,6 +43,10 @@ class Person {
         if ($parent != null){
             $this->parents[] = &$parent;
         }
+        if ($rawData != null){
+            global $classes;
+            $classes[] = $this->getWTID();
+        }
     }
 
     function getId() {
@@ -62,11 +66,13 @@ class Person {
     }
 
     function getDates() {
-        $birth = substr($this->rawData["BirthDate"], 0, 4);
-        if ($birth == "0000")
+        if (isset($this->rawData["BirthDate"]))
+            $birth = substr($this->rawData["BirthDate"], 0, 4);
+        if (!isset($birth) || $birth == "0000")
             $birth = "&nbsp;";
-        $death = substr($this->rawData["DeathDate"], 0, 4);
-        if ($death == "0000")
+        if (isset($this->rawData["DeathDate"]))
+            $death = substr($this->rawData["DeathDate"], 0, 4);
+        if (!isset($death) || $death == "0000")
             $death = "&nbsp;";
         return ($birth . "-" . $death);
     }
@@ -652,19 +658,20 @@ function printTheChart(&$grid) {
             if ($grid[$i][$j]->person == null) {
                 echo $grid[$i][$j]->text;
             } else {
+                echo "<div class=\"" . $grid[$i][$j]->person->getWTID() . "\">";
                 echo "<a href=\"http://www.wikitree.com/wiki/" . $grid[$i][$j]->person->getWTID() . "\">";
                 //echo $grid[$i][$j]->person->getThumb();
                 echo $grid[$i][$j]->person->getName();
                 echo "<br>";
                 echo $grid[$i][$j]->person->getDates();
-                echo "</a>";
+                echo "</a></div>";
             }
             echo "</td>\n";
             $j += $grid[$i][$j]->colspan;
         }
         echo "</tr>\n";
     }
-    echo "</table>\n<br><br><br>";
+    echo "</table>\n<br><br>";
 }
 
 
@@ -977,7 +984,42 @@ echo "<br>\n";
 if (debug()) echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n";
 printTheChart($grid);
 
+echo "\n\n<script>\n";
+echo "var classes = [";
+for ($i=0; $i<count($classes); $i++) {
+    if ($i != 0) {
+        echo ", ";
+    }
+    echo "\"" . $classes[$i] . "\"";
+}
+echo "];";
+
 ?>
+
+var elms = {};
+var n = {}, nclasses = classes.length;
+function changeColor(classname, color) {
+  var curN = n[classname];
+  for (var i=0; i < curN; i++) {
+    elms[classname][i].style.backgroundColor = color;
+  }
+}
+for(var k = 0; k < nclasses; k ++) {
+  var curClass = classes[k];
+  elms[curClass] = document.getElementsByClassName(curClass);
+  n[curClass] = elms[curClass].length;
+  var curN = n[curClass];
+  for(var i = 0; i < curN; i ++) {
+     elms[curClass][i].onmouseover = function() {
+        changeColor(this.className, "yellow");
+     };
+     elms[curClass][i].onmouseout = function() {
+        changeColor(this.className, "white");
+     };
+  }
+};
+</script>
+
 </body>
 </html>
 
