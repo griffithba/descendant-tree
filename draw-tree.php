@@ -933,12 +933,10 @@ for ($i=1; $i<$depth*4; $i+=4) { // start at 1st row with name (very 1st is blan
 
 // Draw horizontal lines linking siblings
 for ($i=5; $i<$depth*4; $i+=4) {  // start with 2nd row of 2nd generation (contains names)
-    $noHzLines = TRUE;
     for ($j=0; $grid[$i][$j]->endCol() < $width; $j += $grid[$i][$j]->colspan) {
         // if child span is smaller than parent span
         if ($grid[$i][$j]->colspan < $grid[$i-4][$j]->colspan) {
             // Draw horizontal line linking siblings, in last row of previous generation
-            $noHzLines = FALSE;
             $grid[$i-2][$j]->colspan = $grid[$i][$j]->colspan;
             $grid[$i-2][$j]->align = "right";
             $grid[$i-2][$j]->text = "<hr width=\"50%\" align=\"right\">";  // left-most cell
@@ -952,13 +950,7 @@ for ($i=5; $i<$depth*4; $i+=4) {  // start with 2nd row of 2nd generation (conta
                 }
                 $k += $grid[$i][$j+$k]->colspan;
             }
-        } else if ($grid[$i-2][$j]->text != "|") {
-            $noHzLines = FALSE;
         }
-    }
-    if ($noHzLines) {
-        // delete some extra vertical space
-        unset($grid[$i-2]);
     }
 }
 
@@ -971,6 +963,20 @@ for ($i=0; $i<$depth*4-1; $i++) {
     }
 }
 
+// reduce the space between generations where possible
+for ($i=7; $i<$depth*4-1; $i+=4) {
+    $noHzLines = TRUE;
+    for ($j=0; $j < $width; $j += $grid[$i][$j]->colspan) {
+        if ($grid[$i][$j]->text != "|") $noHzLines = FALSE;
+    }
+    if ($noHzLines) {
+        // delete some extra vertical space
+        unset($grid[$i-2]);
+    }
+}
+$grid = array_values($grid);
+
+echo "<br>\n";
 echo $baseObject->getName() . " is descended from " . $targetObject->getName() . " " . $width . " different ways.<br>\n";
 echo "<br>\n";
 if (debug()) echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n";
