@@ -469,7 +469,7 @@ function consolidate(&$path1, &$path2) {
                    ((count($group1RightExtent->right()->families) > $path1FamilyIndex) &&
                     ($group1RightExtent->families[$path1FamilyIndex] == $group1RightExtent->right()->families[$path1FamilyIndex]))) {
                 $group1RightExtent = &$group1RightExtent->right();
-                if (debug()) echo "(1)Bumped left family right extent over 1, to " . $group1RightExtent->index . ".<br>\n";
+                if (debug()) echo "(1)Bumped left group right extent over 1, to " . $group1RightExtent->index . ".<br>\n";
                 if ($group1RightExtent === $path2) {
                     if (debug()) echo "Groups of paths are too closely tied together.<br>\n";
                     return(-1);
@@ -493,7 +493,7 @@ function consolidate(&$path1, &$path2) {
             $group1LeftExtent->left = &$group1LeftExtent->right();
             $group1LeftExtent->right = &$group1RightNeighbor;
 
-            if (debug()) echo "Reversed the order of family " . $path1->families[$path1FamilyIndex]->index . ".<br>\n";
+            if (debug()) echo "Reversed the order of family/path " . $path1->families[$path1FamilyIndex]->index . ".<br>\n";
 //            if (debug()) checkPaths($path1);
 
             $group1LeftExtent = &$path1->families[$path1FamilyIndex]->leftPath();
@@ -513,7 +513,7 @@ function consolidate(&$path1, &$path2) {
                    ((count($group2LeftExtent->left()->families) > $path2FamilyIndex) &&
                     ($group2LeftExtent->families[$path2FamilyIndex] == $group2LeftExtent->left()->families[$path2FamilyIndex]))) {
                 $group2LeftExtent = &$group2LeftExtent->left();
-                if (debug()) echo "(1)Bumped right family left extent over 1, to " . $group2LeftExtent->index . ".<br>\n";
+                if (debug()) echo "(1)Bumped right group left extent over 1, to " . $group2LeftExtent->index . ".<br>\n";
                 if ($group2LeftExtent === $path1) {
                     if (debug()) echo "Groups of paths are too closely tied together.<br>\n";
                     return(-1);
@@ -536,7 +536,7 @@ function consolidate(&$path1, &$path2) {
             $group2RightExtent->right = &$tempPath;
             $group2RightExtent->left = &$group2LeftNeighbor;
 
-            if (debug()) echo "Reversed the order of family " . $path2->families[$path2FamilyIndex]->index . ".<br>\n";
+            if (debug()) echo "Reversed the order of family/path " . $path2->families[$path2FamilyIndex]->index . ".<br>\n";
             $group2RightExtent = &$path2->families[$path2FamilyIndex]->rightPath();
             $group2LeftExtent = &$path2->families[$path2FamilyIndex]->leftPath();
             $group2RightNeighbor = &$group2RightExtent->right();
@@ -550,7 +550,7 @@ function consolidate(&$path1, &$path2) {
                ((count($group1LeftExtent->left()->families) > $path1FamilyIndex) &&
                 ($group1LeftExtent->families[$path1FamilyIndex] == $group1LeftExtent->left()->families[$path1FamilyIndex]))) {
             $group1LeftExtent = &$group1LeftExtent->left();
-            if (debug()) echo "(2)Bumped left family left extent over 1, to " . $group1LeftExtent->index . ".<br>\n";
+            if (debug()) echo "(2)Bumped left group left extent over 1, to " . $group1LeftExtent->index . ".<br>\n";
         }
 
         $group1LeftNeighbor = &$group1LeftExtent->left();
@@ -560,7 +560,7 @@ function consolidate(&$path1, &$path2) {
                ((count($group2RightExtent->right()->families) > $path2FamilyIndex) &&
                 ($group2RightExtent->families[$path2FamilyIndex] == $group2RightExtent->right()->families[$path2FamilyIndex]))) {
             $group2RightExtent = &$group2RightExtent->right();
-            if (debug()) echo "(2)Bumped right family right extent over 1, to " . $group2RightExtent->index . ".<br>\n";
+            if (debug()) echo "(2)Bumped right group right extent over 1, to " . $group2RightExtent->index . ".<br>\n";
         }
 
         $group2RightNeighbor = &$group2RightExtent->right();
@@ -605,7 +605,6 @@ function consolidate(&$path1, &$path2) {
             $path2->mustBeNeighbor[1] = &$path1;
         }
     }
-
     return (0);
 }
 
@@ -632,7 +631,6 @@ function placePath (&$grid, &$path, $col) {
     for ($j=0; $j<count($path->persons); $j++) {
         if ($path->persons[$j] == "dummy") continue;
         $nameRow = $path->persons[$j]->generation * 4 - 3;
-//        $nameRow = ($j+1) * 4 - 3;
         if (!$path->persons[$j]->isTarget) {
             // vertical line above everyone except the top person
             $grid[$nameRow-1][$col]->text = "|";
@@ -647,12 +645,10 @@ function placePath (&$grid, &$path, $col) {
 }
 
 
-
 // Print the chart
 function printTheChart(&$grid) {
     if (!debug()) echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n";
     for ($i=0; $i<count($grid); $i++) {
-        if (!isset($grid[$i])) continue;  // skip lines that were deleted
         echo "<tr>\n";
         for ($j=0; $j<count($grid[$i]); ) {
             echo "<td align=\"" . $grid[$i][$j]->align . "\" colspan=\"" . $grid[$i][$j]->colspan . "\">";
@@ -971,7 +967,7 @@ for ($i=7; $i<$depth*4-1; $i+=4) {
     }
     if ($noHzLines) {
         // delete some extra vertical space
-        unset($grid[$i-2]);
+        unset($grid[$i]);
     }
 }
 $grid = array_values($grid);
