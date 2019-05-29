@@ -891,27 +891,11 @@ for ($j=0; $j<$width; $j++) {
     }
 }
 
-if (debug()) echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n";
 // Place people in grid by path
 for ($thisPath=&$leftMargin->right, $col=0;
      $col<$width;
      $thisPath=&$thisPath->right, $col++) {
     placePath($grid, $thisPath, $col);
-    if (debug()) {
-        echo "<td align=\"center\">" . $thisPath->index;
-        if ($thisPath->mustBeNeighbor[0] != null) {
-            echo " (" . $thisPath->mustBeNeighbor[0]->index;
-            if ($thisPath->mustBeNeighbor[1] != null) {
-                echo ", " . $thisPath->mustBeNeighbor[1]->index;
-            }
-            echo ")";
-        }
-        echo "</td>\n";
-    }
-}
-if (debug()) {
-    echo "</tr>\n";
-    printTheChart($grid);
 }
 
 // Consolidate adjacent duplicate persons
