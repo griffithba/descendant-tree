@@ -726,6 +726,8 @@ for ($i=0, $j=0; $i<count($arr[0]["ancestors"]); $i++){ // Loop through decoded 
     }
 }
 
+if (!isset($targetObject)) die("Ancestor not found.  This app only goes back 10 (or so) generations for now.<br></body></html>");
+
 $paths[$currentPathIndex] = new Path($currentPathIndex);
 findKids($targetObject, $ancestors, $currentPathIndex, $paths, $families, -1);
 
