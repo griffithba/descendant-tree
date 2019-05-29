@@ -652,6 +652,7 @@ function placePath (&$grid, &$path, $col) {
 function printTheChart(&$grid) {
     if (!debug()) echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n";
     for ($i=0; $i<count($grid); $i++) {
+        if (!isset($grid[$i])) continue;  // skip lines that were deleted
         echo "<tr>\n";
         for ($j=0; $j<count($grid[$i]); ) {
             echo "<td align=\"" . $grid[$i][$j]->align . "\" colspan=\"" . $grid[$i][$j]->colspan . "\">";
@@ -914,14 +915,13 @@ for ($i=1; $i<$depth*4; $i+=4) { // start at 1st row with name (very 1st is blan
                     // Draw horizontal line linking parents
                     $grid[$i-2][$j]->align = "right";
                     $grid[$i-2][$j]->text = "<hr width=\"50%\" align=\"right\">";  // first cell
-                    for ($k=1; $k<$grid[$i][$j]->colspan; ) {
+                    for ($k=1; $k<$grid[$i][$j]->colspan; $k+= $grid[$i][$j+$k]->colspan) {
                         if ($grid[$i-2][$j+$k]->endCol() < $grid[$i][$j]->endCol()) {
                             $grid[$i-2][$j+$k]->text = "<hr width=\"100%\">";  // middle cells
                         } else {
                             $grid[$i-2][$j+$k]->align = "left";
                             $grid[$i-2][$j+$k]->text = "<hr width=\"50%\" align=\"left\">";  //last cell
                         }
-                        $k+= $grid[$i][$j+$k]->colspan;
                     }
                 }
             }
@@ -933,10 +933,12 @@ for ($i=1; $i<$depth*4; $i+=4) { // start at 1st row with name (very 1st is blan
 
 // Draw horizontal lines linking siblings
 for ($i=5; $i<$depth*4; $i+=4) {  // start with 2nd row of 2nd generation (contains names)
-    for ($j=0; $grid[$i][$j]->endCol() < $width; ) {
+    $noHzLines = TRUE;
+    for ($j=0; $grid[$i][$j]->endCol() < $width; $j += $grid[$i][$j]->colspan) {
         // if child span is smaller than parent span
         if ($grid[$i][$j]->colspan < $grid[$i-4][$j]->colspan) {
             // Draw horizontal line linking siblings, in last row of previous generation
+            $noHzLines = FALSE;
             $grid[$i-2][$j]->colspan = $grid[$i][$j]->colspan;
             $grid[$i-2][$j]->align = "right";
             $grid[$i-2][$j]->text = "<hr width=\"50%\" align=\"right\">";  // left-most cell
@@ -950,18 +952,22 @@ for ($i=5; $i<$depth*4; $i+=4) {  // start with 2nd row of 2nd generation (conta
                 }
                 $k += $grid[$i][$j+$k]->colspan;
             }
+        } else if ($grid[$i-2][$j]->text != "|") {
+            $noHzLines = FALSE;
         }
-        $j += $grid[$i][$j]->colspan;
+    }
+    if ($noHzLines) {
+        // delete some extra vertical space
+        unset($grid[$i-2]);
     }
 }
 
 // fill in gaps in vertical lines
 for ($i=0; $i<$depth*4-1; $i++) {
-    for ($j=0; $j < $width; ) {
+    for ($j=0; $j < $width; $j += $grid[$i][$j]->colspan) {
         if ($grid[$i][$j]->text[0] == "|" && $grid[$i+1][$j]->text == "&nbsp;" && $grid[$i+1][$j]->person == null) {
             $grid[$i+1][$j]->text = "|";
         }
-        $j += $grid[$i][$j]->colspan;
     }
 }
 
