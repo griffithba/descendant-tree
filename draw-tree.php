@@ -630,10 +630,12 @@ function placePath (&$grid, &$path, $col) {
     // each generation has four rows: a vertical line, name and info, and two more vertical lines
     for ($j=0; $j<count($path->persons); $j++) {
         if ($path->persons[$j] == "dummy") continue;
-        $nameRow = $path->persons[$j]->generation * 4 - 3;
+        $nameRow = $path->persons[$j]->generation * 6 - 5;
         if (!$path->persons[$j]->isTarget) {
             // vertical line above everyone except the top person
             $grid[$nameRow-1][$col]->text = "|";
+            $grid[$nameRow-2][$col]->text = "|";
+            $grid[$nameRow-3][$col]->text = "|";
         }
         $grid[$nameRow][$col]->person = &$path->persons[$j];
         if (!$path->persons[$j]->isBase) {
@@ -780,7 +782,7 @@ findNeighbors($families);
 if (debug()) {
     $grid = array();
     for ($j=0; $j<$width; $j++) {
-        for ($i=0; $i<$depth*4; $i++) {
+        for ($i=0; $i<$depth*6; $i++) {
             $grid[$i][$j] = new Cell($j);
         }
     }
@@ -883,7 +885,7 @@ for ($row=2; $row<$depth-1; $row++) { // skip the first generation since there's
 
 $grid = array();
 for ($j=0; $j<$width; $j++) {
-    for ($i=0; $i<$depth*4; $i++) {
+    for ($i=0; $i<$depth*6; $i++) {
         $grid[$i][$j] = new Cell($j);
     }
 }
@@ -896,27 +898,25 @@ for ($thisPath=&$leftMargin->right, $col=0;
 }
 
 // Consolidate adjacent duplicate persons
-for ($i=1; $i<$depth*4; $i+=4) { // start at 1st row with name (very 1st is blank), jump by 4 rows (names every 4 rows)
+for ($i=1; $i<$depth*6; $i+=6) { // start at 1st row with name (very 1st is blank), jump by 4 rows (names every 4 rows)
     for ($j=0; $grid[$i][$j]->endCol() < $width; ) {
         if (/*($grid[$i][$j]->person != null) && */($grid[$i][$j]->person == $grid[$i][$grid[$i][$j]->endCol()]->person)) {
-            for ($k=-1; $k<3; $k++) {
-                // if ($k==0) printRow($grid[$i+$k], $i+$k);
+            for ($k=-1; $k<5; $k++) {
                 // combine vertical blocks of 4 cells into 1 vertical block of 4 cells
                 $grid[$i+$k][$grid[$i+$k][$j]->endCol()] = new Cell($grid[$i+$k][$j]->endCol());  // wipe out what was there (cell won't be printed anyway)
                 $grid[$i+$k][$j]->colspan += $grid[$i+$k][$grid[$i+$k][$j]->endCol()]->colspan;  // increase colspan by colspan of covered cell
-                // if ($k==0) printRow($grid[$i+$k], $i+$k);
             }
             if (($grid[$i][$j]->person != null) && !$grid[$i][$j]->person->isTarget) {
-                if($grid[$i][$j]->colspan > $grid[$i-4][$j]->colspan) { // if child span is bigger than parent span
+                if($grid[$i][$j]->colspan > $grid[$i-6][$j]->colspan) { // if child span is bigger than parent span
                     // Draw horizontal line linking parents
-                    $grid[$i-2][$j]->align = "right";
-                    $grid[$i-2][$j]->text = "<hr width=\"50%\" align=\"right\">";  // first cell
+                    $grid[$i-4][$j]->align = "right";
+                    $grid[$i-4][$j]->text = "<hr width=\"50%\" align=\"right\">";  // first cell
                     for ($k=1; $k<$grid[$i][$j]->colspan; $k+= $grid[$i][$j+$k]->colspan) {
-                        if ($grid[$i-2][$j+$k]->endCol() < $grid[$i][$j]->endCol()) {
-                            $grid[$i-2][$j+$k]->text = "<hr width=\"100%\">";  // middle cells
+                        if ($grid[$i-4][$j+$k]->endCol() < $grid[$i][$j]->endCol()) {
+                            $grid[$i-4][$j+$k]->text = "<hr width=\"100%\">";  // middle cells
                         } else {
-                            $grid[$i-2][$j+$k]->align = "left";
-                            $grid[$i-2][$j+$k]->text = "<hr width=\"50%\" align=\"left\">";  //last cell
+                            $grid[$i-4][$j+$k]->align = "left";
+                            $grid[$i-4][$j+$k]->text = "<hr width=\"50%\" align=\"left\">";  //last cell
                         }
                     }
                 }
@@ -928,7 +928,7 @@ for ($i=1; $i<$depth*4; $i+=4) { // start at 1st row with name (very 1st is blan
 }
 
 // Draw horizontal lines linking siblings
-for ($i=5; $i<$depth*4; $i+=4) {  // start with 2nd row of 2nd generation (contains names)
+for ($i=7; $i<$depth*6; $i+=6) {  // start with 2nd row of 2nd generation (contains names)
     for ($j=0; $grid[$i][$j]->endCol() < $width; $j += $grid[$i][$j]->colspan) {
         // if child span is smaller than parent span
         if ($grid[$i][$j]->colspan < $grid[$i-4][$j]->colspan) {
@@ -936,9 +936,9 @@ for ($i=5; $i<$depth*4; $i+=4) {  // start with 2nd row of 2nd generation (conta
             $grid[$i-2][$j]->colspan = $grid[$i][$j]->colspan;
             $grid[$i-2][$j]->align = "right";
             $grid[$i-2][$j]->text = "<hr width=\"50%\" align=\"right\">";  // left-most cell
-            for ($k=1; $k<$grid[$i-3][$j]->colspan; ) {
+            for ($k=1; $k<$grid[$i-5][$j]->colspan; ) {
                 $grid[$i-2][$j+$k]->colspan = $grid[$i][$j+$k]->colspan;
-                if ($j + $k + $grid[$i-2][$j+$k]->colspan < $j + $grid[$i-3][$j]->colspan) {
+                if ($j + $k + $grid[$i-2][$j+$k]->colspan < $j + $grid[$i-5][$j]->colspan) {
                     $grid[$i-2][$j+$k]->text = "<hr width=\"100%\">";  // middle cell(s)
                 } else {
                     $grid[$i-2][$j+$k]->align = "left";
@@ -951,7 +951,7 @@ for ($i=5; $i<$depth*4; $i+=4) {  // start with 2nd row of 2nd generation (conta
 }
 
 // fill in gaps in vertical lines
-for ($i=0; $i<$depth*4-1; $i++) {
+for ($i=0; $i<$depth*6-1; $i++) {
     for ($j=0; $j < $width; $j += $grid[$i][$j]->colspan) {
         if ($grid[$i][$j]->text[0] == "|" && $grid[$i+1][$j]->text == "&nbsp;" && $grid[$i+1][$j]->person == null) {
             $grid[$i+1][$j]->text = "|";
@@ -960,7 +960,7 @@ for ($i=0; $i<$depth*4-1; $i++) {
 }
 
 // reduce the space between generations where possible
-for ($i=7; $i<$depth*4-1; $i+=4) {
+for ($i=7; $i<$depth*6-1; $i+=6) {
     $noHzLines = TRUE;
     for ($j=0; $j < $width; $j += $grid[$i][$j]->colspan) {
         if ($grid[$i][$j]->text != "|") $noHzLines = FALSE;
