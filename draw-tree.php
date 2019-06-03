@@ -644,6 +644,7 @@ function placePath (&$grid, &$path, $col) {
             $grid[$nameRow][$col]->person = &$path->persons[$j];
         } else {
             $grid[$nameRow][$col]->text = "|<br>|";
+            // once in the grid, empty spaces are no longer marked with "dummy", but by ->person = null
         }
         if ($dummy || !$path->persons[$j]->isBase) {
             // two vertical lines below everyone (including empty spaces) except the bottom person
@@ -907,24 +908,32 @@ for ($thisPath=&$leftMargin->right, $col=0;
 // Consolidate adjacent duplicate persons
 for ($i=1; $i<$depth*4; $i+=4) { // start at 1st row with name (very 1st is blank), jump by 4 rows (names every 4 rows)
     for ($j=0; $grid[$i][$j]->endCol() < $width; ) {
-        if (/*($grid[$i][$j]->person != null) && */($grid[$i][$j]->person == $grid[$i][$grid[$i][$j]->endCol()]->person)) {
-            for ($k=-1; $k<3; $k++) {
+        // if this isn't an empty space and the next space is the same person
+        if (($grid[$i][$j]->person != null) && ($grid[$i][$j]->person == $grid[$i][$grid[$i][$j]->endCol()]->person)) {
+            // the for ($m) loop will traverse down the columns, merging each person or empty block
+            for ($m=0; 
+                 $i+$m<$depth*4 && (($grid[$i+$m][$j]->person == null) || ($grid[$i+$m][$j]->person == $grid[$i+$m][$grid[$i+$m][$j]->endCol()]->person));
+                 $m+=4) {
                 // combine vertical blocks of 4 cells into 1 vertical block of 4 cells
-                $grid[$i+$k][$grid[$i+$k][$j]->endCol()] = new Cell($grid[$i+$k][$j]->endCol());  // wipe out what was there (cell won't be printed anyway)
-                $grid[$i+$k][$j]->colspan += $grid[$i+$k][$grid[$i+$k][$j]->endCol()]->colspan;  // increase colspan by colspan of covered cell
+                for ($k=-1; $k<3; $k++) {
+                    // wipe out what was there (cell won't be printed anyway)
+                    $grid[$i+$m+$k][$grid[$i+$m+$k][$j]->endCol()] = new Cell($grid[$i+$m+$k][$j]->endCol()); 
+                    // increase colspan by colspan of covered cell
+                    $grid[$i+$m+$k][$j]->colspan += $grid[$i+$m+$k][$grid[$i+$m+$k][$j]->endCol()]->colspan;  
+                }
             }
-            if (($grid[$i][$j]->person != null) && !$grid[$i][$j]->person->isTarget) {
-                if($grid[$i][$j]->colspan > $grid[$i-4][$j]->colspan) { // if child span is bigger than parent span
-                    // Draw horizontal line linking parents
-                    $grid[$i-2][$j]->align = "right";
-                    $grid[$i-2][$j]->text = "<hr width=\"50%\" align=\"right\">";  // first cell
-                    for ($k=1; $k<$grid[$i][$j]->colspan; $k+= $grid[$i][$j+$k]->colspan) {
-                        if ($grid[$i-2][$j+$k]->endCol() < $grid[$i][$j]->endCol()) {
-                            $grid[$i-2][$j+$k]->text = "<hr width=\"100%\">";  // middle cells
-                        } else {
-                            $grid[$i-2][$j+$k]->align = "left";
-                            $grid[$i-2][$j+$k]->text = "<hr width=\"50%\" align=\"left\">";  //last cell
-                        }
+            // if this isn't the top person and if the child span is bigger than the parent span
+            // (**because the whole column is merged at once the child will always be bigger than the parent**)
+            if (!$grid[$i][$j]->person->isTarget && $grid[$i][$j]->colspan > $grid[$i-4][$j]->colspan) {
+                // Draw horizontal line linking parents
+                $grid[$i-2][$j]->align = "right";
+                $grid[$i-2][$j]->text = "<hr width=\"50%\" align=\"right\">";  // first cell
+                for ($k=1; $k<$grid[$i][$j]->colspan; $k+= $grid[$i][$j+$k]->colspan) {
+                    if ($grid[$i-2][$j+$k]->endCol() < $grid[$i][$j]->endCol()) {
+                        $grid[$i-2][$j+$k]->text = "<hr width=\"100%\">";  // middle cells
+                    } else {
+                        $grid[$i-2][$j+$k]->align = "left";
+                        $grid[$i-2][$j+$k]->text = "<hr width=\"50%\" align=\"left\">";  //last cell
                     }
                 }
             }
