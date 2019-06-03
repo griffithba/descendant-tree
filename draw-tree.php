@@ -771,13 +771,11 @@ for ($i=0; $i<$width; $i++) {
         if ($paths[$i]->persons[$j]->generation > $j + 1) {
 //            echo "Inserting a space into path " . $paths[$i]->index . "<br>";
             for ($k=0; $k<($paths[$i]->persons[$j]->generation - ($j + 1)); $k++) {
-                //$dummy = new Person;
-                array_splice($paths[$i]->persons, $j, 0, array("dummy"));
+                array_splice($paths[$i]->persons, $j+$k, 0, array("dummy"));
 //                echo "Space inserted<br>";
                 $j++;
                 if ($j>=$depth) break;
             }
-            if ($j<$depth) break;
         }
     }
 
@@ -908,11 +906,11 @@ for ($thisPath=&$leftMargin->right, $col=0;
 // Consolidate adjacent duplicate persons
 for ($i=1; $i<$depth*4; $i+=4) { // start at 1st row with name (very 1st is blank), jump by 4 rows (names every 4 rows)
     for ($j=0; $grid[$i][$j]->endCol() < $width; ) {
-        // if this isn't an empty space and the next space is the same person
+        // if this isn't an empty space and the next space to the right is the same person
         if (($grid[$i][$j]->person != null) && ($grid[$i][$j]->person == $grid[$i][$grid[$i][$j]->endCol()]->person)) {
-            // the for ($m) loop will traverse down the columns, merging each person or empty block
+            // the for($m) loop will traverse down the columns, merging this person and any subsequent empty blocks
             for ($m=0; 
-                 $i+$m<$depth*4 && (($grid[$i+$m][$j]->person == null) || ($grid[$i+$m][$j]->person == $grid[$i+$m][$grid[$i+$m][$j]->endCol()]->person));
+                 $i+$m<$depth*4 && ($grid[$i+$m][$j]->person == null);
                  $m+=4) {
                 // combine vertical blocks of 4 cells into 1 vertical block of 4 cells
                 for ($k=-1; $k<3; $k++) {
@@ -923,7 +921,6 @@ for ($i=1; $i<$depth*4; $i+=4) { // start at 1st row with name (very 1st is blan
                 }
             }
             // if this isn't the top person and if the child span is bigger than the parent span
-            // (**because the whole column is merged at once the child will always be bigger than the parent**)
             if (!$grid[$i][$j]->person->isTarget && $grid[$i][$j]->colspan > $grid[$i-4][$j]->colspan) {
                 // Draw horizontal line linking parents
                 $grid[$i-2][$j]->align = "right";
