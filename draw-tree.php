@@ -629,8 +629,13 @@ function checkPaths (&$startPath) {
 function placePath (&$grid, &$path, $col) {
     // each generation has four rows: a vertical line, name and info, and two more vertical lines
     for ($j=0; $j<count($path->persons); $j++) {
+        // flag so we know if this is an empty space
         $dummy = ($path->persons[$j] == "dummy");
-        $nameRow = $path->persons[$j]->generation * 4 - 3;
+        if (!$dummy) {
+            $nameRow = $path->persons[$j]->generation * 4 - 3;
+        } else {
+            $nameRow += 4;  // could calculate it this way every time
+        }
         if ($dummy || !$path->persons[$j]->isTarget) {
             // vertical line above everyone (including empty spaces) except the top person
             $grid[$nameRow-1][$col]->text = "|";
