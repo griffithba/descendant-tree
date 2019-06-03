@@ -629,15 +629,19 @@ function checkPaths (&$startPath) {
 function placePath (&$grid, &$path, $col) {
     // each generation has four rows: a vertical line, name and info, and two more vertical lines
     for ($j=0; $j<count($path->persons); $j++) {
-        if ($path->persons[$j] == "dummy") continue;
+        $dummy = ($path->persons[$j] == "dummy");
         $nameRow = $path->persons[$j]->generation * 4 - 3;
-        if (!$path->persons[$j]->isTarget) {
-            // vertical line above everyone except the top person
+        if ($dummy || !$path->persons[$j]->isTarget) {
+            // vertical line above everyone (including empty spaces) except the top person
             $grid[$nameRow-1][$col]->text = "|";
         }
-        $grid[$nameRow][$col]->person = &$path->persons[$j];
-        if (!$path->persons[$j]->isBase) {
-            // two vertical lines below everyone except the bottom person
+        if (!$dummy) {
+            $grid[$nameRow][$col]->person = &$path->persons[$j];
+        } else {
+            $grid[$nameRow][$col]->text = "|<br>|";
+        }
+        if ($dummy || !$path->persons[$j]->isBase) {
+            // two vertical lines below everyone (including empty spaces) except the bottom person
             $grid[$nameRow+1][$col]->text = "|";
             $grid[$nameRow+2][$col]->text = "|";
         }
@@ -900,11 +904,9 @@ for ($i=1; $i<$depth*4; $i+=4) { // start at 1st row with name (very 1st is blan
     for ($j=0; $grid[$i][$j]->endCol() < $width; ) {
         if (/*($grid[$i][$j]->person != null) && */($grid[$i][$j]->person == $grid[$i][$grid[$i][$j]->endCol()]->person)) {
             for ($k=-1; $k<3; $k++) {
-                // if ($k==0) printRow($grid[$i+$k], $i+$k);
                 // combine vertical blocks of 4 cells into 1 vertical block of 4 cells
                 $grid[$i+$k][$grid[$i+$k][$j]->endCol()] = new Cell($grid[$i+$k][$j]->endCol());  // wipe out what was there (cell won't be printed anyway)
                 $grid[$i+$k][$j]->colspan += $grid[$i+$k][$grid[$i+$k][$j]->endCol()]->colspan;  // increase colspan by colspan of covered cell
-                // if ($k==0) printRow($grid[$i+$k], $i+$k);
             }
             if (($grid[$i][$j]->person != null) && !$grid[$i][$j]->person->isTarget) {
                 if($grid[$i][$j]->colspan > $grid[$i-4][$j]->colspan) { // if child span is bigger than parent span
@@ -936,7 +938,7 @@ for ($i=5; $i<$depth*4; $i+=4) {  // start with 2nd row of 2nd generation (conta
             $grid[$i-2][$j]->colspan = $grid[$i][$j]->colspan;
             $grid[$i-2][$j]->align = "right";
             $grid[$i-2][$j]->text = "<hr width=\"50%\" align=\"right\">";  // left-most cell
-            for ($k=1; $k<$grid[$i-3][$j]->colspan; ) {
+            for ($k=1; $k<$grid[$i-3][$j]->colspan; $k += $grid[$i][$j+$k]->colspan) {
                 $grid[$i-2][$j+$k]->colspan = $grid[$i][$j+$k]->colspan;
                 if ($j + $k + $grid[$i-2][$j+$k]->colspan < $j + $grid[$i-3][$j]->colspan) {
                     $grid[$i-2][$j+$k]->text = "<hr width=\"100%\">";  // middle cell(s)
@@ -944,13 +946,12 @@ for ($i=5; $i<$depth*4; $i+=4) {  // start with 2nd row of 2nd generation (conta
                     $grid[$i-2][$j+$k]->align = "left";
                     $grid[$i-2][$j+$k]->text = "<hr width=\"50%\" align=\"left\">";  // right-most cell
                 }
-                $k += $grid[$i][$j+$k]->colspan;
             }
         }
     }
 }
 
-// fill in gaps in vertical lines
+/* // fill in gaps in vertical lines
 for ($i=0; $i<$depth*4-1; $i++) {
     for ($j=0; $j < $width; $j += $grid[$i][$j]->colspan) {
         if ($grid[$i][$j]->text[0] == "|" && $grid[$i+1][$j]->text == "&nbsp;" && $grid[$i+1][$j]->person == null) {
@@ -958,7 +959,8 @@ for ($i=0; $i<$depth*4-1; $i++) {
         }
     }
 }
-
+*/
+    
 // reduce the space between generations where possible
 for ($i=7; $i<$depth*4-1; $i+=4) {
     $noHzLines = TRUE;
