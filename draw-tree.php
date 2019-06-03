@@ -768,11 +768,15 @@ for ($i=0; $i<$width; $i++) {
 
     // While we're here, insert spaces where needed so people line up between paths
     for ($j=2; $j<$depth; $j++) {
+        // if the generation of the current person is greater than the index + 1
         if ($paths[$i]->persons[$j]->generation > $j + 1) {
-//            echo "Inserting a space into path " . $paths[$i]->index . "<br>";
-            for ($k=0; $k<($paths[$i]->persons[$j]->generation - ($j + 1)); $k++) {
-                array_splice($paths[$i]->persons, $j+$k, 0, array("dummy"));
-//                echo "Space inserted<br>";
+            if (debug()) echo "Inserting space(s) into path " . $paths[$i]->index . 
+                              " after generation " . $paths[$i]->persons[$j]->generation . "<br>";
+            for ($k=0; 
+                 $k <= ($paths[$i]->persons[$j]->generation - ($j + 1)); 
+                 $k++) {
+                array_splice($paths[$i]->persons, $j, 0, array("dummy"));
+                if (debug()) echo "Space inserted<br>";
                 $j++;
                 if ($j>=$depth) break;
             }
