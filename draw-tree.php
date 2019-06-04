@@ -763,7 +763,6 @@ for ($i=0; $i<$width; $i++) {
         if ($paths[$i]->persons[$j]->generation > $j + 1) {
 //            echo "Inserting a space into path " . $paths[$i]->index . "<br>";
             for ($k=0; $k<($paths[$i]->persons[$j]->generation - ($j + 1)); $k++) {
-                //$dummy = new Person;
                 array_splice($paths[$i]->persons, $j, 0, array("dummy"));
 //                echo "Space inserted<br>";
                 $j++;
@@ -898,11 +897,12 @@ for ($thisPath=&$leftMargin->right, $col=0;
 }
 
 // Consolidate adjacent duplicate persons
-for ($i=1; $i<$depth*6; $i+=6) { // start at 1st row with name (very 1st is blank), jump by 4 rows (names every 4 rows)
+for ($i=1; $i<$depth*6; $i+=6) { // start at 1st row with name (very 1st is blank), jump by 6 rows (names every 6 rows)
     for ($j=0; $grid[$i][$j]->endCol() < $width; ) {
-        if (/*($grid[$i][$j]->person != null) && */($grid[$i][$j]->person == $grid[$i][$grid[$i][$j]->endCol()]->person)) {
-            for ($k=-1; $k<5; $k++) {
-                // combine vertical blocks of 4 cells into 1 vertical block of 4 cells
+        if ($grid[$i][$j]->person == $grid[$i][$grid[$i][$j]->endCol()]->person) {
+            for ($k=-2; $k<4; $k++) {
+                // combine vertical blocks of 6 cells into 1 vertical block of 6 cells
+                if (!isset($grid[$i+$k])) continue;  // top person has no rows above it
                 $grid[$i+$k][$grid[$i+$k][$j]->endCol()] = new Cell($grid[$i+$k][$j]->endCol());  // wipe out what was there (cell won't be printed anyway)
                 $grid[$i+$k][$j]->colspan += $grid[$i+$k][$grid[$i+$k][$j]->endCol()]->colspan;  // increase colspan by colspan of covered cell
             }
@@ -936,7 +936,7 @@ for ($i=7; $i<$depth*6; $i+=6) {  // start with 2nd row of 2nd generation (conta
             $grid[$i-2][$j]->colspan = $grid[$i][$j]->colspan;
             $grid[$i-2][$j]->align = "right";
             $grid[$i-2][$j]->text = "<hr width=\"50%\" align=\"right\">";  // left-most cell
-            for ($k=1; $k<$grid[$i-5][$j]->colspan; ) {
+            for ($k=1; $k<$grid[$i-5][$j]->colspan; $k += $grid[$i][$j+$k]->colspan) {
                 $grid[$i-2][$j+$k]->colspan = $grid[$i][$j+$k]->colspan;
                 if ($j + $k + $grid[$i-2][$j+$k]->colspan < $j + $grid[$i-5][$j]->colspan) {
                     $grid[$i-2][$j+$k]->text = "<hr width=\"100%\">";  // middle cell(s)
@@ -944,7 +944,6 @@ for ($i=7; $i<$depth*6; $i+=6) {  // start with 2nd row of 2nd generation (conta
                     $grid[$i-2][$j+$k]->align = "left";
                     $grid[$i-2][$j+$k]->text = "<hr width=\"50%\" align=\"left\">";  // right-most cell
                 }
-                $k += $grid[$i][$j+$k]->colspan;
             }
         }
     }
@@ -953,13 +952,22 @@ for ($i=7; $i<$depth*6; $i+=6) {  // start with 2nd row of 2nd generation (conta
 // fill in gaps in vertical lines
 for ($i=0; $i<$depth*6-1; $i++) {
     for ($j=0; $j < $width; $j += $grid[$i][$j]->colspan) {
+        // if there's a gap, fill it in with vertical lines
         if ($grid[$i][$j]->text[0] == "|" && $grid[$i+1][$j]->text == "&nbsp;" && $grid[$i+1][$j]->person == null) {
-            $grid[$i+1][$j]->text = "|";
+            $grid[$i+1][$j]->text = "|<br>|";
+        }
+        // get rid of dangling vertical lines
+        if (strpos($grid[$i][$j]->text, "<hr width=\"50") !== FALSE) {
+            if (($grid[$i+1][$j]->text == "|") && 
+                (($grid[$i+2][$j]->text == "&nbsp;") || ($grid[$i+1][$j]->colspan != $grid[$i+2][$j]->colspan)) &&
+                ($grid[$i+2][$j]->person == null)) {
+                $grid[$i+1][$j]->text = "&nbsp;";
+            }
         }
     }
 }
 
-// reduce the space between generations where possible
+/* // reduce the space between generations where possible
 for ($i=7; $i<$depth*6-1; $i+=6) {
     $noHzLines = TRUE;
     for ($j=0; $j < $width; $j += $grid[$i][$j]->colspan) {
@@ -971,6 +979,7 @@ for ($i=7; $i<$depth*6-1; $i+=6) {
     }
 }
 $grid = array_values($grid);
+ */
 
 echo "<br>\n";
 echo $baseObject->getName() . " is descended from " . $targetObject->getName() . " " . $width . " different ways.<br>\n";
