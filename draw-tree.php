@@ -916,10 +916,11 @@ for ($i=1; $i<$depth*6; $i+=6) { // start at 1st row with name (very 1st is blan
         if (($grid[$i][$j]->person != null) && ($grid[$i][$j]->person == $grid[$i][$grid[$i][$j]->endCol()]->person)) {
             // the for($m) loop will traverse down the columns, merging this person and any subsequent empty blocks
             for ($m=0; 
-                 $i+$m<$depth*4 && ($m == 0 || $grid[$i+$m][$j]->person == null);
+                 $i+$m<$depth*6 && ($m == 0 || $grid[$i+$m][$j]->person == null);
                  $m+=6) {
                 // combine vertical blocks of 4 cells into 1 vertical block of 4 cells
                 for ($k=-2; $k<4; $k++) {
+                    if (!isset($grid[$i+$k])) continue;  // top person has no rows above it
                     // wipe out what was there (cell won't be printed anyway)
                     $grid[$i+$m+$k][$grid[$i+$m+$k][$j]->endCol()] = new Cell($grid[$i+$m+$k][$j]->endCol()); 
                     // increase colspan by colspan of covered cell
