@@ -629,17 +629,27 @@ function checkPaths (&$startPath) {
 function placePath (&$grid, &$path, $col) {
     // each generation has four rows: a vertical line, name and info, and two more vertical lines
     for ($j=0; $j<count($path->persons); $j++) {
-        if ($path->persons[$j] == "dummy") continue;
-        $nameRow = $path->persons[$j]->generation * 6 - 5;
-        if (!$path->persons[$j]->isTarget) {
-            // vertical line above everyone except the top person
+        // flag so we know if this is an empty space
+        $dummy = ($path->persons[$j] == "dummy");
+        if (!$dummy) {
+            $nameRow = $path->persons[$j]->generation * 6 - 5;
+        } else {
+            $nameRow += 6;  // could calculate it this way every time
+        }
+        if ($dummy || !$path->persons[$j]->isTarget) {
+            // vertical line above everyone (including empty spaces) except the top person
             $grid[$nameRow-1][$col]->text = "|";
             $grid[$nameRow-2][$col]->text = "|";
             $grid[$nameRow-3][$col]->text = "|";
         }
-        $grid[$nameRow][$col]->person = &$path->persons[$j];
-        if (!$path->persons[$j]->isBase) {
-            // two vertical lines below everyone except the bottom person
+        if (!$dummy) {
+            $grid[$nameRow][$col]->person = &$path->persons[$j];
+        } else {
+            $grid[$nameRow][$col]->text = "|<br>|";
+            // once in the grid, empty spaces are no longer marked with "dummy", but by ->person = null
+        }
+        if ($dummy || !$path->persons[$j]->isBase) {
+            // two vertical lines below everyone (including empty spaces) except the bottom person
             $grid[$nameRow+1][$col]->text = "|";
             $grid[$nameRow+2][$col]->text = "|";
         }
@@ -760,15 +770,18 @@ for ($i=0; $i<$width; $i++) {
 
     // While we're here, insert spaces where needed so people line up between paths
     for ($j=2; $j<$depth; $j++) {
+        // if the generation of the current person is greater than the index + 1
         if ($paths[$i]->persons[$j]->generation > $j + 1) {
-//            echo "Inserting a space into path " . $paths[$i]->index . "<br>";
-            for ($k=0; $k<($paths[$i]->persons[$j]->generation - ($j + 1)); $k++) {
+            if (debug()) echo "Inserting space(s) into path " . $paths[$i]->index . 
+                              " before generation " . $paths[$i]->persons[$j]->generation . "<br>";
+            for ($k=0; 
+                 $k <= ($paths[$i]->persons[$j]->generation - ($j + 1)); 
+                 $k++) {
                 array_splice($paths[$i]->persons, $j, 0, array("dummy"));
-//                echo "Space inserted<br>";
+                if (debug()) echo "Space inserted<br>";
                 $j++;
                 if ($j>=$depth) break;
             }
-            if ($j<$depth) break;
         }
     }
 
@@ -899,25 +912,31 @@ for ($thisPath=&$leftMargin->right, $col=0;
 // Consolidate adjacent duplicate persons
 for ($i=1; $i<$depth*6; $i+=6) { // start at 1st row with name (very 1st is blank), jump by 6 rows (names every 6 rows)
     for ($j=0; $grid[$i][$j]->endCol() < $width; ) {
-        if ($grid[$i][$j]->person == $grid[$i][$grid[$i][$j]->endCol()]->person) {
-            for ($k=-2; $k<4; $k++) {
-                // combine vertical blocks of 6 cells into 1 vertical block of 6 cells
-                if (!isset($grid[$i+$k])) continue;  // top person has no rows above it
-                $grid[$i+$k][$grid[$i+$k][$j]->endCol()] = new Cell($grid[$i+$k][$j]->endCol());  // wipe out what was there (cell won't be printed anyway)
-                $grid[$i+$k][$j]->colspan += $grid[$i+$k][$grid[$i+$k][$j]->endCol()]->colspan;  // increase colspan by colspan of covered cell
+        // if this isn't an empty space and the next space to the right is the same person
+        if (($grid[$i][$j]->person != null) && ($grid[$i][$j]->person == $grid[$i][$grid[$i][$j]->endCol()]->person)) {
+            // the for($m) loop will traverse down the columns, merging this person and any subsequent empty blocks
+            for ($m=0; 
+                 $i+$m<$depth*4 && ($m == 0 || $grid[$i+$m][$j]->person == null);
+                 $m+=6) {
+                // combine vertical blocks of 4 cells into 1 vertical block of 4 cells
+                for ($k=-2; $k<4; $k++) {
+                    // wipe out what was there (cell won't be printed anyway)
+                    $grid[$i+$m+$k][$grid[$i+$m+$k][$j]->endCol()] = new Cell($grid[$i+$m+$k][$j]->endCol()); 
+                    // increase colspan by colspan of covered cell
+                    $grid[$i+$m+$k][$j]->colspan += $grid[$i+$m+$k][$grid[$i+$m+$k][$j]->endCol()]->colspan;  
+                }
             }
-            if (($grid[$i][$j]->person != null) && !$grid[$i][$j]->person->isTarget) {
-                if($grid[$i][$j]->colspan > $grid[$i-6][$j]->colspan) { // if child span is bigger than parent span
-                    // Draw horizontal line linking parents
-                    $grid[$i-4][$j]->align = "right";
-                    $grid[$i-4][$j]->text = "<hr width=\"50%\" align=\"right\">";  // first cell
-                    for ($k=1; $k<$grid[$i][$j]->colspan; $k+= $grid[$i][$j+$k]->colspan) {
-                        if ($grid[$i-4][$j+$k]->endCol() < $grid[$i][$j]->endCol()) {
-                            $grid[$i-4][$j+$k]->text = "<hr width=\"100%\">";  // middle cells
-                        } else {
-                            $grid[$i-4][$j+$k]->align = "left";
-                            $grid[$i-4][$j+$k]->text = "<hr width=\"50%\" align=\"left\">";  //last cell
-                        }
+            // if this isn't the top person and if the child span is bigger than the parent span
+            if (!$grid[$i][$j]->person->isTarget && $grid[$i][$j]->colspan > $grid[$i-6][$j]->colspan) {
+                // Draw horizontal line linking parents
+                $grid[$i-4][$j]->align = "right";
+                $grid[$i-4][$j]->text = "<hr width=\"50%\" align=\"right\">";  // first cell
+                for ($k=1; $k<$grid[$i][$j]->colspan; $k+= $grid[$i][$j+$k]->colspan) {
+                    if ($grid[$i-4][$j+$k]->endCol() < $grid[$i][$j]->endCol()) {
+                        $grid[$i-4][$j+$k]->text = "<hr width=\"100%\">";  // middle cells
+                    } else {
+                        $grid[$i-4][$j+$k]->align = "left";
+                        $grid[$i-4][$j+$k]->text = "<hr width=\"50%\" align=\"left\">";  //last cell
                     }
                 }
             }
@@ -949,7 +968,7 @@ for ($i=7; $i<$depth*6; $i+=6) {  // start with 2nd row of 2nd generation (conta
     }
 }
 
-// fill in gaps in vertical lines
+/* // fill in gaps in vertical lines
 for ($i=0; $i<$depth*6-1; $i++) {
     for ($j=0; $j < $width; $j += $grid[$i][$j]->colspan) {
         // if there's a gap, fill it in with vertical lines
@@ -966,8 +985,10 @@ for ($i=0; $i<$depth*6-1; $i++) {
         }
     }
 }
+*/
 
-/* // reduce the space between generations where possible
+/*
+// reduce the space between generations where possible
 for ($i=7; $i<$depth*6-1; $i+=6) {
     $noHzLines = TRUE;
     for ($j=0; $j < $width; $j += $grid[$i][$j]->colspan) {
