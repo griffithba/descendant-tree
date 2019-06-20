@@ -115,7 +115,7 @@ class Person {
         }
         // add the family to the Family Circles URL
         //$familyCirclesURL .= $arr["family"];
-        $familyCirclesURL .= $this->rawData["father"] . ":" . $this->rawData["mother"];
+        $familyCirclesURL .= $this->rawData["Father"] . ":" . $this->rawData["Mother"];
     }
 }
 
