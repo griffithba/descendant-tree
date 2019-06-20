@@ -57,6 +57,10 @@ class Person {
         return ($this->rawData["Name"]);
     }
 
+    function getGender() {
+        return ($this->rawData["Gender"]);
+    }
+
     function getName() {
         if (array_key_exists("BirthName", $this->rawData)) {
             return ($this->rawData["BirthName"]);
@@ -80,6 +84,10 @@ class Person {
     function getThumb() {
         if (array_key_exists("PhotoData", $this->rawData))
             return ("<img src=\"http://www.wikitree.com/" . $this->rawData["PhotoData"]["url"] . "\" style=\"vertical-align:top\">\n");
+        else if ($this->getGender() == "Male")
+            return("<img src=\"https://www.wikitree.com/images/icons/male.gif \" style=\"vertical-align:top\">\n");
+        else
+            return("<img src=\"https://www.wikitree.com/images/icons/female.gif \" style=\"vertical-align:top\">\n");
     }
 
     function addKid(&$rawData) {
@@ -668,6 +676,7 @@ function printTheChart(&$grid) {
                 echo "<div class=\"" . $grid[$i][$j]->person->getWTID() . "\">";
                 echo "<a href=\"http://www.wikitree.com/wiki/" . $grid[$i][$j]->person->getWTID() . "\">";
                 //echo $grid[$i][$j]->person->getThumb();
+                //echo "<br>";
                 echo $grid[$i][$j]->person->getName();
                 echo "<br>";
                 echo $grid[$i][$j]->person->getDates();
@@ -966,15 +975,6 @@ for ($i=5; $i<$depth*4; $i+=4) {  // start with 2nd row of 2nd generation (conta
     }
 }
 
-/* // fill in gaps in vertical lines
-for ($i=0; $i<$depth*4-1; $i++) {
-    for ($j=0; $j < $width; $j += $grid[$i][$j]->colspan) {
-        if ($grid[$i][$j]->text[0] == "|" && $grid[$i+1][$j]->text == "&nbsp;" && $grid[$i+1][$j]->person == null) {
-            $grid[$i+1][$j]->text = "|";
-        }
-    }
-}
-*/
     
 // reduce the space between generations where possible
 for ($i=7; $i<$depth*4-1; $i+=4) {
@@ -985,6 +985,7 @@ for ($i=7; $i<$depth*4-1; $i+=4) {
     if ($noHzLines) {
         // delete some extra vertical space
         unset($grid[$i]);
+        //unset($grid[$i+1]);
     }
 }
 $grid = array_values($grid);
@@ -995,18 +996,11 @@ echo "<br>\n";
 if (debug()) echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n";
 printTheChart($grid);
 
-echo "\n\n<script>\n";
-echo "var classes = [";
-for ($i=0; $i<count($classes); $i++) {
-    if ($i != 0) {
-        echo ", ";
-    }
-    echo "\"" . $classes[$i] . "\"";
-}
-echo "];";
 
 ?>
 
+<script>
+var classes = <?php echo json_encode($classes); ?>;
 var elms = {};
 var n = {}, nclasses = classes.length;
 function changeColor(classname, color) {
