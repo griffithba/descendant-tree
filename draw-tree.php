@@ -20,6 +20,8 @@ function debug() {
     return ($debug);
 }
 
+$familyCirclesURL = "https://apps.wikitree.com/apps/mcgillis84/explorer?service=/apps/mcgillis84/fcservice.php&start=";
+
 // an individual in the tree
 class Person {
     // raw person data as downloaded from WikiTree
@@ -94,11 +96,25 @@ class Person {
         if ($rawData["object"] == null) {  // If there isn't already an object
             $this->kids[] = new Person($rawData, $this);
             $kidObject = &$this->kids[count($this->kids) - 1];
+            $kidObject->addToFamilyCircles();
         } else {  // object already exists
             $kidObject = &$rawData["object"];
             $this->kids[] = &$kidObject;
             $kidObject->parents[] = &$this;
         }
+    }
+
+    function addToFamilyCircles() {
+        $json = file_get_contents("https://apps.wikitree.com/apps/mcgillis84/fcservice.php/object/" . $this->getWTID());
+        // Decode JSON data into PHP associative array format
+        $arr = json_decode($json, true);
+        global $familyCirclesURL;
+        // if this isn't the first family being added then add a comma separator
+        if (!(substr($familyCirclesURL, -1) == "=")) {
+            $familyCirclesURL .= ",";
+        }
+        // add the family to the Family Circles URL
+        $familyCirclesURL .= $arr["family"];
     }
 }
 
@@ -995,8 +1011,12 @@ echo $baseObject->getName() . " is descended from " . $targetObject->getName() .
 echo "<br>\n";
 if (debug()) echo "\n\n<table style=\"width:95%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n";
 printTheChart($grid);
-
-
+echo "<br>\n";
+// add family of base person to Family Circles URL
+$baseObject->addToFamilyCircles();
+echo "<a href=" . $familyCirclesURL . ">Click here to see this tree in Matthew McGillis's Family Circles app.</a>";
+echo "<br>\n";
+echo "<br>\n";
 ?>
 
 <script>
