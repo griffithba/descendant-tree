@@ -105,16 +105,17 @@ class Person {
     }
 
     function addToFamilyCircles() {
-        $json = file_get_contents("https://apps.wikitree.com/apps/mcgillis84/fcservice.php/object/" . $this->getWTID());
+        //$json = file_get_contents("https://apps.wikitree.com/apps/mcgillis84/fcservice.php/object/" . $this->getWTID());
         // Decode JSON data into PHP associative array format
-        $arr = json_decode($json, true);
+        //$arr = json_decode($json, true);
         global $familyCirclesURL;
         // if this isn't the first family being added then add a comma separator
         if (!(substr($familyCirclesURL, -1) == "=")) {
             $familyCirclesURL .= ",";
         }
         // add the family to the Family Circles URL
-        $familyCirclesURL .= $arr["family"];
+        //$familyCirclesURL .= $arr["family"];
+        $familyCirclesURL .= $this->rawData["father"] . ":" . $this->rawData["mother"];
     }
 }
 
